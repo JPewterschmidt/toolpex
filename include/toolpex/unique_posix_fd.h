@@ -13,7 +13,7 @@ TOOLPEX_NAMESAPCE_BEG
 
 struct posix_fd_closer
 {
-    operator()(int fd) const noexcept
+    void operator()(int fd) const noexcept
     {
         ::close(fd);
     }
@@ -34,3 +34,5 @@ public:
 };
 
 TOOLPEX_NAMESAPCE_END
+
+#endif

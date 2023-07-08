@@ -1,5 +1,6 @@
 #include <iostream>
 #include "toolpex/unique_resource.h"
+#include "toolpex/unique_posix_fd.h"
 
 class foo
 {
@@ -11,7 +12,8 @@ public:
 
 int main()
 {
-    toolpex::unique_resource handle{ foo{}, [](foo& f) noexcept {} };
+    toolpex::unique_posix_fd handle{ 1 };
+    int val = handle;
     
     return 0;
 }

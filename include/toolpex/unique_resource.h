@@ -2,6 +2,7 @@
 #define TOOLPEX_UNIQUE_RESOURCE_H
 
 #include <concepts>
+#include <utility>
 
 #include "toolpex/macros.h"
 
@@ -11,9 +12,9 @@ template<typename R, ::std::invocable<R&> Dtor>
 class unique_resource
 {
 public:
-    unique_resource(R&& r, Dtor&& d)
-        : m_resource{ ::std::move(r) }, 
-          m_dtor{ ::std::move(d) }
+    unique_resource(auto&& r, auto&& d)
+        : m_resource{ ::std::forward<decltype(r)>(r) }, 
+          m_dtor{ ::std::forward<decltype(d)>(d) }
     {
     }
 
