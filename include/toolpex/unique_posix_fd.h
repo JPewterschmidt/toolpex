@@ -4,33 +4,18 @@
 #include "toolpex/macros.h"
 #include "toolpex/unique_resource.h"
 
-extern "C"
-{
-    int close(int);
-}
-
 TOOLPEX_NAMESAPCE_BEG
 
 struct posix_fd_closer
 {
-    void operator()(int fd) const noexcept
-    {
-        ::close(fd);
-    }
+    void operator()(int fd) const noexcept;
 };
 
 class unique_posix_fd : public unique_resource<int, posix_fd_closer>
 {
 public:
-    unique_posix_fd(int fd)
-        : unique_resource<int, posix_fd_closer>(fd, posix_fd_closer{})
-    {
-    }
-
-    operator int() const noexcept 
-    {
-        return m_resource;
-    }
+    unique_posix_fd(int fd);
+    operator int() const noexcept;
 };
 
 TOOLPEX_NAMESAPCE_END
