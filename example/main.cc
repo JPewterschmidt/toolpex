@@ -1,17 +1,14 @@
 #include <iostream>
+#include <functional>
+
 #include "toolpex/unique_resource.h"
 #include "toolpex/unique_posix_fd.h"
 
-namespace
-{
-    int success{};
-}
+#include "toolpex/concepts_and_traits.h"
+
+int func(int, int, double) { return 1; }
 
 int main()
 {
-    {
-        toolpex::unique_resource handle1{ 1, [](int i){ success = 1; } };
-        //auto handle2 = ::std::move(handle1);
-    }
-    ::std::cout << success << ::std::endl;
+    ::std::cout << toolpex::number_of_parameters_v<decltype(func)> << ::std::endl;
 }
