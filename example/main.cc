@@ -1,14 +1,13 @@
+#include <iomanip>
 #include <iostream>
-#include <functional>
-
-#include "toolpex/unique_resource.h"
-#include "toolpex/unique_posix_fd.h"
-
-#include "toolpex/concepts_and_traits.h"
-
-int func(int, int, double) { return 1; }
-
+#include <ranges>
+#include <string_view>
+ 
 int main()
 {
-    ::std::cout << toolpex::number_of_parameters_v<decltype(func)> << ::std::endl;
+    std::string_view words{"Hello^_^C++^_^20^_^!"};
+    std::string_view delim{"^_^"};
+ 
+    for (const auto word : std::views::split(words, delim))
+        std::cout << std::quoted(std::string_view{word.begin(), word.end()}) << ' ';
 }
