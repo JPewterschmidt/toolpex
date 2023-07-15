@@ -10,7 +10,7 @@
 
 TOOLPEX_NAMESAPCE_BEG
 
-[[noreturn]] inline void not_implemented(::std::string_view msg, ::std::source_location sl = ::std::source_location::current())
+[[noreturn]] inline void not_implemented(::std::string_view msg = {}, ::std::source_location sl = ::std::source_location::current())
 {
     fmt::print("This functionality is not implemented! "
                "msg: {}, location: {} :{}, function signature: {}.\n",
