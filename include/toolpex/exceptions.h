@@ -4,6 +4,7 @@
 #include <source_location>
 #include <string_view>
 #include <cstdlib>
+#include <cstdio>
 
 #include "fmt/core.h"
 #include "toolpex/macros.h"
@@ -16,7 +17,8 @@ TOOLPEX_NAMESAPCE_BEG
                "msg: {}, location: {} :{}, function signature: {}.\n",
                msg, sl.file_name(), sl.line(), sl.function_name());
 
-    ::std::exit(EXIT_FAILURE);   
+    ::fflush(nullptr);
+    ::quick_exit(1);
 }
 
 TOOLPEX_NAMESAPCE_END
