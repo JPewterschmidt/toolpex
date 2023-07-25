@@ -6,19 +6,11 @@ add_requires(
     "benchmark"
 )
 
-target("toolpex")
-    set_kind("shared")
-    add_packages("fmt", "gflags", "concurrentqueue")
-    set_languages("c++20", "c17")
-    add_files("src/*.cc")
-    add_includedirs("include")
-
 target("test")
     set_kind("binary")
     set_languages("c++20", "c17")
     add_files("test/*.cc")
     add_packages("gtest")
-    add_deps("toolpex")
     add_includedirs("include")
     after_build(function (target)
         os.exec(target:targetfile())
@@ -30,7 +22,6 @@ target("test")
     
 target("example")
     set_kind("binary")
-    add_deps("toolpex")
     set_languages("c++20", "c17")
     add_files("example/*.cc")
     add_packages("fmt", "gflags")

@@ -1,2 +1,2 @@
 # toolpex
-A C++ Utility Toolbox
+A C++ header-only utilities toolbox
