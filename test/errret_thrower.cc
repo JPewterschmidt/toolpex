@@ -15,7 +15,7 @@ TEST(errret_thrower, negative_1)
     
     try
     {
-        et(-1);
+        et << -1;
     }
     catch (::std::runtime_error& e)
     {
@@ -33,7 +33,7 @@ TEST(errret_thrower, negative_errno)
     
     try
     {
-        et(-22);
+        et << -22;
     }
     catch (::std::runtime_error& e)
     {
