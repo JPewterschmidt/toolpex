@@ -3,15 +3,17 @@ add_requires(
     "fmt", 
     "gflags", 
     "gtest", 
-    "benchmark"
+    "benchmark",
+    "concurrentqueue master"
 )
 
 target("test")
     set_kind("binary")
-    set_languages("c++20", "c17")
+    set_languages("c++2b", "c17")
     add_files("test/*.cc")
     add_packages("gtest")
     add_includedirs("include")
+    add_packages("concurrentqueue")
     after_build(function (target)
         os.exec(target:targetfile())
         print("xmake: unittest complete.")
@@ -25,6 +27,7 @@ target("example")
     set_languages("c++20", "c17")
     add_files("example/*.cc")
     add_packages("fmt", "gflags")
+    add_packages("concurrentqueue")
     add_includedirs("include")
 
 
