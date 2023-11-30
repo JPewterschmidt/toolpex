@@ -2,6 +2,7 @@
 #define TOOLPEX_CONCETPS_AND_TRAITS_H
 
 #include <functional>
+#include <chrono>
 
 #include "toolpex/macros.h"
 #include "toolpex/is_specialization_of.h"
@@ -33,6 +34,9 @@ struct number_of_parameters<Ret(*)(Args...)>
 
 template<typename Functor>
 constexpr size_t number_of_parameters_v = number_of_parameters<Functor>::value;
+
+template<typename Duration>
+concept is_std_chrono_duration = toolpex::is_specialization_of<Duration, ::std::chrono::duration>;
 
 TOOLPEX_NAMESAPCE_END
 

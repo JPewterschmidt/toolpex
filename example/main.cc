@@ -3,6 +3,7 @@
 #include <ranges>
 #include <string_view>
 #include "toolpex/exceptions.h"
+#include "toolpex/concepts_and_traits.h"
 
 void func()
 {
@@ -11,5 +12,5 @@ void func()
  
 int main()
 {
-    func();   
+    ::std::cout << toolpex::is_std_chrono_duration<::std::chrono::nanoseconds>;
 }
