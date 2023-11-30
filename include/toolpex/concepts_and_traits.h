@@ -38,6 +38,9 @@ constexpr size_t number_of_parameters_v = number_of_parameters<Functor>::value;
 template<typename Duration>
 concept is_std_chrono_duration = toolpex::is_specialization_of<Duration, ::std::chrono::duration>;
 
+template<typename Timepoint>
+concept is_std_chrono_time_point = toolpex::is_specialization_of<Timepoint, ::std::chrono::time_point>;
+
 TOOLPEX_NAMESAPCE_END
 
 #endif
