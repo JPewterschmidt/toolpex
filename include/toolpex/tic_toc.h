@@ -14,7 +14,7 @@ auto tic()
     return ::std::chrono::high_resolution_clock::now();
 }
 
-auto toc(const auto& tp)
+[[nodiscard]] auto toc(const auto& tp)
 {
     ::std::stringstream ss{};   
     auto now = ::std::chrono::high_resolution_clock::now();
