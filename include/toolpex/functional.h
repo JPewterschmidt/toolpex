@@ -7,7 +7,8 @@ TOOLPEX_NAMESAPCE_BEG
 
 struct do_nothing
 {
-    constexpr void operator()([[maybe_unused]] auto&&) const noexcept { }
+    constexpr void operator()([[maybe_unused]] auto&& args...) const noexcept { }
+    constexpr void operator()() const noexcept { }
 };
 
 TOOLPEX_NAMESAPCE_END
