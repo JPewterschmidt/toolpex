@@ -8,10 +8,11 @@ TOOLPEX_NAMESAPCE_BEG
 class move_only
 {
 public:
+    constexpr move_only() noexcept = default;
+    ~move_only() noexcept = default;
+
     move_only(move_only&&) noexcept = default;
     move_only& operator=(move_only&&) noexcept = default;
-
-    ~move_only() noexcept = default;
 
     move_only(const move_only&) = delete;
     move_only& operator=(move_only&) = delete;
