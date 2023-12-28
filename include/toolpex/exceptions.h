@@ -28,7 +28,7 @@ class posix_exception : public ::std::system_error
 {
 public:
     explicit posix_exception(int err) noexcept
-        : ::std::system_error(err, ::std::system_error())
+        : ::std::system_error(err, ::std::system_category())
     {
     }
 
