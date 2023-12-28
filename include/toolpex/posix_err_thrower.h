@@ -5,6 +5,7 @@
 
 #include "toolpex/macros.h"
 #include "toolpex/move_only.h"
+#include "toolpex/exceptions.h"
 
 TOOLPEX_NAMESAPCE_BEG
 
