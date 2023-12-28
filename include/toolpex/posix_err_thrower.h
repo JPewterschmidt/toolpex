@@ -30,6 +30,8 @@ public:
     }
 };
 
+using pet = posix_err_thrower;
+
 TOOLPEX_NAMESAPCE_END
 
 #endif
