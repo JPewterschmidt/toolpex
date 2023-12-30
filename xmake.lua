@@ -1,4 +1,4 @@
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.asan", "mode.ubsan")
 add_requires(
     "fmt", 
     "gflags", 
@@ -6,11 +6,24 @@ add_requires(
     "benchmark",
     "concurrentqueue master"
 )
+set_policy("build.warning", true)
+
+target("toolpex")
+    set_kind("shared")
+    set_languages("c++2b", "c17")
+    set_warnings("all", "error")
+    add_files("src/*.cc")
+    add_packages("fmt")
+    add_includedirs("include")
+    on_run(function (target)
+        --nothing
+    end)
 
 target("test")
     set_kind("binary")
     set_languages("c++2b", "c17")
     add_files("test/*.cc")
+    set_warnings("all", "error")
     add_packages("gtest")
     add_includedirs("include")
     add_packages("concurrentqueue")
@@ -25,11 +38,11 @@ target("test")
 target("example")
     set_kind("binary")
     set_languages("c++20", "c17")
+    add_deps("toolpex")
     add_files("example/*.cc")
     add_packages("fmt", "gflags")
     add_packages("concurrentqueue")
     add_includedirs("include")
-
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
