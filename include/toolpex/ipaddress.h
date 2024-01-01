@@ -13,6 +13,8 @@
 #include <array>
 #include <span>
 #include <cstdint>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 TOOLPEX_NAMESAPCE_BEG
 
@@ -98,6 +100,9 @@ private:
 
 ::std::strong_ordering 
 operator<=>(const ipv6_address& a, const ipv6_address& b);   
+
+::sockaddr_in  to_sockaddr(const ipv4_address& v4, ::in_port_t port);
+::sockaddr_in6 to_sockaddr(const ipv6_address& v6, ::in_port_t port);
 
 TOOLPEX_NAMESAPCE_END
 
