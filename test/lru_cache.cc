@@ -9,7 +9,7 @@ namespace
 int func(int i, unsigned b, double d)
 {
     ++evaluate_cnt;
-    return i + b + d;
+    return static_cast<int>(i + b + d);
 }
 
 TEST(lru_cache, basic)
