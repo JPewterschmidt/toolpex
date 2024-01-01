@@ -1,9 +1,35 @@
 #include "toolpex/ipaddress.h"
+#include "toolpex/exceptions.h"
 #include "fmt/core.h"
 #include <sstream>
 #include <arpa/inet.h>
 
 using namespace toolpex;
+
+::std::unique_ptr<ip_address> 
+ip_address::make(const ::sockaddr* addr, ::socklen_t len)
+{
+    if (len == sizeof(::sockaddr_in) || addr->sa_family == AF_INET)
+    {
+        return ::std::make_unique<ipv4_address>(
+            reinterpret_cast<const sockaddr_in*>(addr)
+        );
+    }
+    else if (len == sizeof(::sockaddr_in6) && addr->sa_family == AF_INET6)
+    {
+        return ::std::make_unique<ipv6_address>(
+            reinterpret_cast<const sockaddr_in6*>(addr)
+        );
+    }
+    not_implemented("only support ipv4 and v6");
+    return {};
+}
+
+ipv4_address::ipv4_address(const ::sockaddr_in* sock4) noexcept
+{
+    uint32_t temp{ ::ntohl(sock4->sin_addr.s_addr) };
+    ::memcpy(ia_data.data(), &temp, sizeof(temp));
+}
 
 ipv4_address::ipv4_address(const ipv4_address& other) noexcept
     : ia_data{ other.ia_data }
@@ -165,6 +191,13 @@ operator<=>(const ipv6_address& a, const ipv6_address& b)
     if (ret == ::std::strong_ordering::equal)
         return a_span[1] <=> b_span[1];
     return ret;
+}
+
+::std::span<const uint8_t>  
+ipv6_address::
+as_uint8s() const noexcept
+{
+    return { data(), 16 };
 }
 
 ::sockaddr_in  

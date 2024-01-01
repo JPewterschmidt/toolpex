@@ -15,10 +15,20 @@
 #include <cstdint>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <memory>
 
 TOOLPEX_NAMESAPCE_BEG
 
-class ipv4_address
+class ip_address
+{
+public:
+    virtual ::std::string to_string() const = 0;
+    virtual ::std::span<const uint8_t> as_uint8s() const noexcept = 0;
+    virtual ~ip_address() noexcept {};
+    static ::std::unique_ptr<ip_address> make(const ::sockaddr* addr, ::socklen_t len);
+};
+
+class ipv4_address : public ip_address
 {
 public:
     constexpr ipv4_address() = default;
@@ -36,6 +46,8 @@ public:
     {
     }
 
+    explicit ipv4_address(const ::sockaddr_in* sock4) noexcept;
+
     ipv4_address(const ipv4_address& other) noexcept;
 
     ipv4_address& operator+=(int i);
@@ -45,9 +57,10 @@ public:
     ipv4_address  operator++(int);
     ipv4_address  operator--(int);
 
-    ::std::string to_string() const;
-    uint32_t      to_uint32() const noexcept;
-    ::std::span<const uint8_t> as_uint8s() const noexcept;
+    virtual ::std::string to_string() const override;
+    uint32_t to_uint32() const noexcept;
+    virtual ::std::span<const uint8_t> as_uint8s() const noexcept override;
+    virtual ~ipv4_address() noexcept {};
     
 private:
     ::std::array<uint8_t, 4> ia_data{};
@@ -55,7 +68,7 @@ private:
 
 ::std::strong_ordering operator<=>(ipv4_address a, ipv4_address b);   
 
-class ipv6_address
+class ipv6_address : public ip_address
 {
 public:
     constexpr ipv6_address() = default;
@@ -64,9 +77,11 @@ public:
     ipv6_address(::std::span<uint16_t> vals);
     ipv6_address(::std::span<uint32_t> vals);
     ipv6_address(::std::span<uint64_t> vals);
+    explicit ipv6_address(const ::sockaddr_in6* sock6) noexcept;
 
-    ::std::string to_string() const;
+    virtual ::std::string to_string() const override;
     const uint8_t* data() const noexcept;
+    virtual ::std::span<const uint8_t> as_uint8s() const noexcept override;
     ::std::span<const uint64_t> as_uint64s() const noexcept;
     ::std::span<const uint16_t> as_uint16s() const noexcept;
 
@@ -93,6 +108,7 @@ public:
         return ret;
     }
 
+    virtual ~ipv6_address() noexcept {}
     
 private:
     ::std::array<uint16_t, 8> i6a_data{};
