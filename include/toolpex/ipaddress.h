@@ -23,7 +23,6 @@ class ip_address
 {
 public:
     virtual ::std::string to_string() const = 0;
-    virtual ::std::span<const uint8_t> as_uint8s() const noexcept = 0;
     virtual ~ip_address() noexcept {};
     static ::std::unique_ptr<ip_address> make(
         const ::sockaddr* addr, 
@@ -61,14 +60,20 @@ public:
 
     virtual ::std::string to_string() const override;
     uint32_t to_uint32() const noexcept;
-    virtual ::std::span<const uint8_t> as_uint8s() const noexcept override;
     virtual ~ipv4_address() noexcept {};
+
+    friend ::sockaddr_in 
+    to_sockaddr(const ipv4_address& v4, ::in_port_t port);
+
+    friend ::std::strong_ordering operator<=>(ipv4_address a, ipv4_address b)
+    {
+        return a.to_uint32() <=> b.to_uint32();
+    }
     
 private:
     ::std::array<uint8_t, 4> ia_data{};
 };
 
-::std::strong_ordering operator<=>(ipv4_address a, ipv4_address b);   
 
 class ipv6_address : public ip_address
 {
@@ -77,48 +82,27 @@ public:
 
     ipv6_address(::std::initializer_list<uint16_t> vals);
     ipv6_address(::std::span<uint16_t> vals);
-    ipv6_address(::std::span<uint32_t> vals);
-    ipv6_address(::std::span<uint64_t> vals);
     explicit ipv6_address(const ::sockaddr_in6* sock6);
 
     virtual ::std::string to_string() const override;
-    const uint8_t* data() const noexcept;
-    virtual ::std::span<const uint8_t> as_uint8s() const noexcept override;
-    ::std::span<const uint64_t> as_uint64s() const noexcept;
     ::std::span<const uint16_t> as_uint16s() const noexcept;
 
-    // Unicast embedded ipv6 address translator
-    friend ipv6_address to_v6addr(ipv4_address v4a)
-    {
-        // embedded ipv6 address
-        // well-known prefix 64:FF9B with ipv4 32-bits address
-
-        // reference: https://www.rfc-editor.org/rfc/rfc6052
-
-        // 0               16              32 
-        // 12345678123456781234567812345678
-        // |       |       |       |       |
-        // 00000000011001001111111110011011     => 64:FF9B
-
-        // 00000000000000000000000000000000
-        // 00000000000000000000000000000000     => ::
-
-        uint16_t prefix[8]{ 0x64, 0xFF9B };
-        *reinterpret_cast<uint32_t*>(&prefix[6]) = v4a.to_uint32();
-        ipv6_address ret{};
-        ::memcpy(ret.i6a_data.data(), prefix, sizeof(prefix));
-        return ret;
-    }
-
+    friend ipv6_address to_v6addr(ipv4_address v4a);
     virtual ~ipv6_address() noexcept {}
+
+    friend ::std::strong_ordering 
+    operator<=>(const ipv6_address& a, const ipv6_address& b);
+
+    friend
+    ::sockaddr_in6 
+    to_sockaddr(const ipv6_address& v6, ::in_port_t port);
     
 private:
     ::std::array<uint16_t, 8> i6a_data{};
 };
 
-::std::strong_ordering 
-operator<=>(const ipv6_address& a, const ipv6_address& b);   
-
+::std::strong_ordering operator<=>(const ipv6_address& a, const ipv6_address& b);
+ipv6_address to_v6addr(ipv4_address v4a);
 ::sockaddr_in  to_sockaddr(const ipv4_address& v4, ::in_port_t port);
 ::sockaddr_in6 to_sockaddr(const ipv6_address& v6, ::in_port_t port);
 

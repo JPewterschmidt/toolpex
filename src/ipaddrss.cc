@@ -3,8 +3,9 @@
 #include "fmt/core.h"
 #include <sstream>
 #include <arpa/inet.h>
+#include <bit>
 
-using namespace toolpex;
+TOOLPEX_NAMESAPCE_BEG
 
 ::std::unique_ptr<ip_address> 
 ip_address::make(const ::sockaddr* addr, ::socklen_t len)
@@ -81,30 +82,6 @@ ipv6_address::ipv6_address(::std::span<uint16_t> vals)
     ::memcpy(i6a_data.data(), vals.data(), vals.size_bytes());
 }
 
-ipv6_address::ipv6_address(::std::span<uint32_t> vals)
-{
-    if (vals.size() != 4) [[unlikely]]
-    {
-        throw ::std::logic_error{ 
-            "You need pass a array which type is uint32_t "
-            "and it's size is 4"
-        };
-    }
-    ::memcpy(i6a_data.data(), vals.data(), vals.size_bytes());
-}
-
-ipv6_address::ipv6_address(::std::span<uint64_t> vals)
-{
-    if (vals.size() != 2) [[unlikely]]
-    {
-        throw ::std::logic_error{ 
-            "You need pass a array which type is uint64_t "
-            "and it's size is 2"
-        };
-    }
-    ::memcpy(i6a_data.data(), vals.data(), vals.size_bytes());
-}
-
 ::std::string ipv6_address::to_string() const
 {
     ::std::stringstream ss;
@@ -134,38 +111,31 @@ ipv6_address::ipv6_address(::std::span<uint64_t> vals)
 
 uint32_t ipv4_address::to_uint32() const noexcept
 {
-    return *reinterpret_cast<const uint32_t*>(ia_data.data());
-}
-
-::std::span<const uint8_t> ipv4_address::as_uint8s() const noexcept
-{
-    return { ia_data.data(), ia_data.size() };
-}
-
-const uint8_t* ipv6_address::data() const noexcept
-{
-    return reinterpret_cast<const uint8_t*>(i6a_data.data());
-}
-
-::std::span<const uint64_t> ipv6_address::as_uint64s() const noexcept
-{
-    return { reinterpret_cast<const uint64_t*>(data()), 2 };
+    uint32_t result{};
+    ::std::memcpy(&result, ia_data.data(), sizeof(result));
+    return result;
 }
 
 ::std::span<const uint16_t> ipv6_address::as_uint16s() const noexcept
 {
-    return { reinterpret_cast<const uint16_t*>(data()), 8 };
+    return { i6a_data.data(), 8 };
 }
 
 ipv4_address& ipv4_address::operator+=(int i)
 {
-    *reinterpret_cast<uint32_t*>(ia_data.data()) += i;
+    uint32_t temp{};
+    ::std::memcpy(&temp, ia_data.data(), sizeof(temp));
+    ++temp;
+    ::std::memcpy(ia_data.data(), &temp, sizeof(temp));
     return *this;
 }
 
 ipv4_address& ipv4_address::operator-=(int i)
 {
-    *reinterpret_cast<uint32_t*>(ia_data.data()) -= i;
+    uint32_t temp{};
+    ::std::memcpy(&temp, ia_data.data(), sizeof(temp));
+    --temp;
+    ::std::memcpy(ia_data.data(), &temp, sizeof(temp));
     return *this;
 }
 
@@ -194,27 +164,18 @@ ipv4_address  ipv4_address::operator--(int)
 }
 
 ::std::strong_ordering 
-operator<=>(ipv4_address a, ipv4_address b)
-{
-    return a.to_uint32() <=> b.to_uint32();
-}
-
-::std::strong_ordering 
 operator<=>(const ipv6_address& a, const ipv6_address& b)
 {
-    auto a_span = a.as_uint64s();
-    auto b_span = b.as_uint64s();
+    uint64_t a_span[2]{};
+    uint64_t b_span[2]{};
+
+    ::std::memcpy(a_span, a.i6a_data.data(), sizeof(a.i6a_data));
+    ::std::memcpy(b_span, b.i6a_data.data(), sizeof(b.i6a_data));
+
     auto ret = a_span[0] <=> b_span[0];
     if (ret == ::std::strong_ordering::equal)
         return a_span[1] <=> b_span[1];
     return ret;
-}
-
-::std::span<const uint8_t>  
-ipv6_address::
-as_uint8s() const noexcept
-{
-    return { data(), 16 };
 }
 
 ::sockaddr_in  
@@ -229,6 +190,30 @@ to_sockaddr(const ipv4_address& v4, ::in_port_t port)
     return result;
 }
 
+// Unicast embedded ipv6 address translator
+ipv6_address to_v6addr(ipv4_address v4a)
+{
+    // embedded ipv6 address
+    // well-known prefix 64:FF9B with ipv4 32-bits address
+
+    // reference: https://www.rfc-editor.org/rfc/rfc6052
+
+    // 0               16              32 
+    // 12345678123456781234567812345678
+    // |       |       |       |       |
+    // 00000000011001001111111110011011     => 64:FF9B
+
+    // 00000000000000000000000000000000
+    // 00000000000000000000000000000000     => ::
+
+    uint16_t prefix[8]{ 0x64, 0xFF9B };
+    const uint32_t temp = v4a.to_uint32();
+    ::std::memcpy(&(prefix[6]), &temp, sizeof(temp));
+    ipv6_address ret{};
+    ::memcpy(ret.i6a_data.data(), prefix, sizeof(prefix));
+    return ret;
+}
+
 ::sockaddr_in6 
 to_sockaddr(const ipv6_address& v6, ::in_port_t port)
 {
@@ -237,7 +222,7 @@ to_sockaddr(const ipv6_address& v6, ::in_port_t port)
         .sin6_port   = ::htons(port), 
     };
     ::std::array<uint32_t, 4> temp_data{};
-    ::memcpy(temp_data.data(), v6.data(), sizeof(temp_data));
+    ::memcpy(temp_data.data(), v6.i6a_data.data(), sizeof(temp_data));
     for (auto& each_seg : temp_data)
     {
         each_seg = ::htonl(each_seg);
@@ -246,3 +231,5 @@ to_sockaddr(const ipv6_address& v6, ::in_port_t port)
 
     return result;
 }
+
+TOOLPEX_NAMESAPCE_END
