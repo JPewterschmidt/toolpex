@@ -180,19 +180,19 @@ to_sockaddr(const ipv4_address& v4, ::in_port_t port)
 }
 
 ::sockaddr_in6 
-to_sockaddr(const ipv6_address& v6)
+to_sockaddr(const ipv6_address& v6, ::in_port_t port)
 {
     ::sockaddr_in6 result{
         .sin6_family = AF_INET6,
         .sin6_port   = ::htons(port), 
     };
     ::std::array<uint32_t, 4> temp_data{};
-    ::memcpy(temp_data, addr.data(), sizeof(temp_data));
+    ::memcpy(temp_data.data(), v6.data(), sizeof(temp_data));
     for (auto& each_seg : temp_data)
     {
         each_seg = ::htonl(each_seg);
     }
-    ::memcpy(ret.sin6_addr.s6_addr, temp_data, sizeof(temp_data));
+    ::memcpy(result.sin6_addr.s6_addr, temp_data.data(), sizeof(temp_data));
 
     return result;
 }
