@@ -37,7 +37,7 @@ target("test")
     
 target("example")
     set_kind("binary")
-    set_languages("c++20", "c17")
+    set_languages("c++2b", "c17")
     add_deps("toolpex")
     add_files("example/*.cc")
     add_packages("fmt", "gflags")
