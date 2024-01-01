@@ -4,6 +4,9 @@
 #include <string_view>
 #include "toolpex/exceptions.h"
 #include "toolpex/concepts_and_traits.h"
+#include "toolpex/ipaddress.h"
+
+using namespace toolpex;
 
 void func()
 {
@@ -12,6 +15,5 @@ void func()
  
 int main()
 {
-    ::std::cout << toolpex::is_std_chrono_duration<::std::chrono::nanoseconds>;
-    ::std::cout << toolpex::is_std_chrono_time_point<::std::chrono::high_resolution_clock::time_point>;
+    auto p = ip_address::make(nullptr, 0);
 }

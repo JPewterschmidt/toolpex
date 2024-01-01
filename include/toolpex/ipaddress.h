@@ -25,7 +25,9 @@ public:
     virtual ::std::string to_string() const = 0;
     virtual ::std::span<const uint8_t> as_uint8s() const noexcept = 0;
     virtual ~ip_address() noexcept {};
-    static ::std::unique_ptr<ip_address> make(const ::sockaddr* addr, ::socklen_t len);
+    static ::std::unique_ptr<ip_address> make(
+        const ::sockaddr* addr, 
+        ::socklen_t len);
 };
 
 class ipv4_address : public ip_address
@@ -46,7 +48,7 @@ public:
     {
     }
 
-    explicit ipv4_address(const ::sockaddr_in* sock4) noexcept;
+    explicit ipv4_address(const ::sockaddr_in* sock4);
 
     ipv4_address(const ipv4_address& other) noexcept;
 
@@ -77,7 +79,7 @@ public:
     ipv6_address(::std::span<uint16_t> vals);
     ipv6_address(::std::span<uint32_t> vals);
     ipv6_address(::std::span<uint64_t> vals);
-    explicit ipv6_address(const ::sockaddr_in6* sock6) noexcept;
+    explicit ipv6_address(const ::sockaddr_in6* sock6);
 
     virtual ::std::string to_string() const override;
     const uint8_t* data() const noexcept;

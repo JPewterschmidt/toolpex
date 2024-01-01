@@ -9,6 +9,7 @@ using namespace toolpex;
 ::std::unique_ptr<ip_address> 
 ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 {
+    if (addr == nullptr) return {};
     if (len == sizeof(::sockaddr_in) || addr->sa_family == AF_INET)
     {
         return ::std::make_unique<ipv4_address>(
@@ -25,8 +26,10 @@ ip_address::make(const ::sockaddr* addr, ::socklen_t len)
     return {};
 }
 
-ipv4_address::ipv4_address(const ::sockaddr_in* sock4) noexcept
+ipv4_address::ipv4_address(const ::sockaddr_in* sock4)
 {
+    if (sock4->sin_family != AF_INET) [[unlikely]]
+        throw ::std::logic_error{"you should call this ctor with a ipv4 sockaddr pointer!"};
     uint32_t temp{ ::ntohl(sock4->sin_addr.s_addr) };
     ::memcpy(ia_data.data(), &temp, sizeof(temp));
 }
@@ -34,6 +37,20 @@ ipv4_address::ipv4_address(const ::sockaddr_in* sock4) noexcept
 ipv4_address::ipv4_address(const ipv4_address& other) noexcept
     : ia_data{ other.ia_data }
 {
+}
+
+ipv6_address::ipv6_address(const ::sockaddr_in6* s) 
+{
+    if (s->sin6_family != AF_INET6) [[unlikely]]
+        throw ::std::logic_error{"you should call this ctor with a ipv6 sockaddr pointer!"};
+
+    ::std::array<uint32_t, 4> temp_data{};
+    ::memcpy(temp_data.data(), &(s->sin6_addr.s6_addr), sizeof(temp_data));
+    for (auto& each_seg : temp_data)
+    {
+        each_seg = ::ntohl(each_seg);
+    }
+    ::memcpy(i6a_data.data(), temp_data.data(), sizeof(i6a_data));   
 }
 
 ipv6_address::ipv6_address(::std::initializer_list<uint16_t> vals)
