@@ -14,7 +14,7 @@ target("toolpex")
     set_warnings("all", "error")
     add_files("src/*.cc")
     add_packages("fmt")
-    add_includedirs("include")
+    add_includedirs("include", {public = true})
     on_run(function (target)
         --nothing
     end)
