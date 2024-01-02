@@ -19,7 +19,7 @@ target("toolpex")
         --nothing
     end)
 
-target("test")
+target("toolpex-test")
     set_kind("binary")
     set_languages("c++2b", "c17")
     add_files("test/*.cc")
@@ -36,7 +36,7 @@ target("test")
         --nothing
     end)
     
-target("example")
+target("toolpex-example")
     set_kind("binary")
     set_languages("c++2b", "c17")
     add_deps("toolpex")
