@@ -260,6 +260,26 @@ ipv6_address to_v6addr(ipv4_address v4a)
     return ret;
 }
 
+::sockaddr_storage
+ipv4_address::
+to_sockaddr(::in_port_t port) const
+{
+    ::sockaddr_storage result{};
+    auto buf = toolpex::to_sockaddr(*this, port);
+    ::std::memcpy(&result, &buf, sizeof(buf));
+    return result;
+}
+
+::sockaddr_storage
+ipv6_address::
+to_sockaddr(::in_port_t port) const
+{
+    ::sockaddr_storage result{};
+    auto buf = toolpex::to_sockaddr(*this, port);
+    ::std::memcpy(&result, &buf, sizeof(buf));
+    return result;   
+}
+
 ::sockaddr_in6 
 to_sockaddr(const ipv6_address& v6, ::in_port_t port)
 {
