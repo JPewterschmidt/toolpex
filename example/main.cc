@@ -15,5 +15,5 @@ void func()
  
 int main()
 {
-    auto p = ip_address::make("192.168.0.1");
+    auto p = "192.168.0.1"_ip;
 }

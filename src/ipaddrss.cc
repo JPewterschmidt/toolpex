@@ -10,6 +10,12 @@
 TOOLPEX_NAMESAPCE_BEG
 
 ::std::unique_ptr<ip_address> 
+operator""_ip(const char* ipstr, ::std::size_t len)
+{
+    return ip_address::make({ ipstr, len });
+}
+
+::std::unique_ptr<ip_address> 
 ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 {
     if (addr == nullptr) return {};
