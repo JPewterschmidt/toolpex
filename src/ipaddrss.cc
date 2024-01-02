@@ -83,7 +83,7 @@ ipv4_address::ipv4_address(const ::sockaddr_in* sock4)
 {
     if (sock4->sin_family != AF_INET) [[unlikely]]
         throw ::std::logic_error{"you should call this ctor with a ipv4 sockaddr pointer!"};
-    uint32_t temp{ ::ntohl(sock4->sin_addr.s_addr) };
+    uint32_t temp{ sock4->sin_addr.s_addr };
     ::memcpy(ia_data.data(), &temp, sizeof(temp));
 }
 
@@ -237,7 +237,7 @@ to_sockaddr(const ipv4_address& v4, ::in_port_t port)
         .sin_family = AF_INET, 
         .sin_port = ::htons(port)
     };
-    result.sin_addr.s_addr = ::htonl(v4.to_uint32());
+    result.sin_addr.s_addr = v4.to_uint32();
 
     return result;
 }
