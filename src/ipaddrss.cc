@@ -9,10 +9,13 @@
 
 TOOLPEX_NAMESAPCE_BEG
 
-::std::unique_ptr<ip_address> 
-operator""_ip(const char* ipstr, ::std::size_t len)
+namespace ip_address_literals
 {
-    return ip_address::make({ ipstr, len });
+    ::std::unique_ptr<ip_address> 
+    operator""_ip(const char* ipstr, ::std::size_t len)
+    {
+        return ip_address::make({ ipstr, len });
+    }
 }
 
 ::std::unique_ptr<ip_address> 

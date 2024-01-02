@@ -6,6 +6,7 @@
 #include <cstring>
 
 using namespace toolpex;
+using namespace ip_address_literals;
 
 TEST(ipaddress, v4endians)
 {

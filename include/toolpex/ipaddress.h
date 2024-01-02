@@ -32,7 +32,11 @@ public:
     static ::std::unique_ptr<ip_address> make(::std::string_view str);
 };
 
-::std::unique_ptr<ip_address> operator""_ip(const char* ipstr, ::std::size_t);
+namespace ip_address_literals
+{
+    ::std::unique_ptr<ip_address> 
+    operator""_ip(const char* ipstr, ::std::size_t);
+}
 
 class ipv4_address : public ip_address
 {

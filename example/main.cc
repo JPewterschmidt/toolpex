@@ -11,6 +11,7 @@
 #include "toolpex/ipaddress.h"
 
 using namespace toolpex;
+using namespace ip_address_literals;
 
 void func()
 {
