@@ -237,7 +237,7 @@ to_sockaddr(const ipv4_address& v4, ::in_port_t port)
         .sin_family = AF_INET, 
         .sin_port = ::htons(port)
     };
-    result.sin_addr.s_addr = v4.to_uint32();
+    result.sin_addr.s_addr = ::htonl(v4.to_uint32());
 
     return result;
 }
@@ -293,11 +293,11 @@ to_sockaddr(const ipv6_address& v6, ::in_port_t port)
         .sin6_family = AF_INET6,
         .sin6_port   = ::htons(port), 
     };
-    ::std::array<uint32_t, 4> temp_data{};
+    ::std::array<uint16_t, 8> temp_data{};
     ::memcpy(temp_data.data(), v6.i6a_data.data(), sizeof(temp_data));
     for (auto& each_seg : temp_data)
     {
-        each_seg = ::htonl(each_seg);
+        each_seg = ::htons(each_seg);
     }
     ::memcpy(result.sin6_addr.s6_addr, temp_data.data(), sizeof(temp_data));
 
