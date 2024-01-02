@@ -4,6 +4,8 @@
 #include <sstream>
 #include <arpa/inet.h>
 #include <bit>
+#include <ranges>
+#include <vector>
 
 TOOLPEX_NAMESAPCE_BEG
 
@@ -27,6 +29,50 @@ ip_address::make(const ::sockaddr* addr, ::socklen_t len)
     return {};
 }
 
+static ::std::unique_ptr<ip_address>
+make_v4(::std::string_view str)
+{
+    namespace sv = ::std::ranges::views;
+    ::std::vector<uint8_t> buf;
+    buf.reserve(4);
+    for (const auto i : str 
+        | sv::split('.')
+        | sv::transform([](auto const&& seg) noexcept { 
+              return ::atoi(::std::data(seg));
+          }))
+    {
+        buf.push_back(i);
+    }
+    if (buf.size() != 4) return {};
+    return ::std::make_unique<ipv4_address>(
+        buf[0], buf[1], buf[2], buf[3]
+    );
+}
+
+static ::std::unique_ptr<ip_address>
+make_v6(::std::string_view str)
+{
+    char buf[sizeof(::in6_addr)]{};
+    if (int s = ::inet_pton(AF_INET6, str.data(), &buf); s <= 0)
+        return {};
+
+    ::sockaddr_in6 temp{
+        .sin6_family = AF_INET6, 
+    };
+    ::std::memcpy(&(temp.sin6_addr), buf, sizeof(::in6_addr));
+    return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in6));
+}
+
+::std::unique_ptr<ip_address> 
+ip_address::make(::std::string_view str)
+{
+    if (str.contains('.'))
+        return make_v4(str);
+    else if (str.contains(':'))
+        return make_v6(str);
+    return {};
+}
+
 ipv4_address::ipv4_address(const ::sockaddr_in* sock4)
 {
     if (sock4->sin_family != AF_INET) [[unlikely]]
@@ -45,11 +91,11 @@ ipv6_address::ipv6_address(const ::sockaddr_in6* s)
     if (s->sin6_family != AF_INET6) [[unlikely]]
         throw ::std::logic_error{"you should call this ctor with a ipv6 sockaddr pointer!"};
 
-    ::std::array<uint32_t, 4> temp_data{};
+    ::std::array<uint16_t, 8> temp_data{};
     ::memcpy(temp_data.data(), &(s->sin6_addr.s6_addr), sizeof(temp_data));
     for (auto& each_seg : temp_data)
     {
-        each_seg = ::ntohl(each_seg);
+        each_seg = ::ntohs(each_seg);
     }
     ::memcpy(i6a_data.data(), temp_data.data(), sizeof(i6a_data));   
 }

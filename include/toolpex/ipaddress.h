@@ -24,9 +24,11 @@ class ip_address
 public:
     virtual ::std::string to_string() const = 0;
     virtual ~ip_address() noexcept {};
+
     static ::std::unique_ptr<ip_address> make(
         const ::sockaddr* addr, 
         ::socklen_t len);
+    static ::std::unique_ptr<ip_address> make(::std::string_view str);
 };
 
 class ipv4_address : public ip_address
