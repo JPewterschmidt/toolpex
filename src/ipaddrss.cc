@@ -7,7 +7,7 @@
 #include <ranges>
 #include <vector>
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 namespace ip_address_literals
 {
@@ -307,4 +307,4 @@ to_sockaddr(const ipv6_address& v6, ::in_port_t port)
     return result;
 }
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END

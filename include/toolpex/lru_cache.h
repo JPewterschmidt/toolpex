@@ -7,7 +7,7 @@
 #include <concepts>
 #include <functional>
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 template<unsigned Capacity, typename R, typename... Args>
 class lru_cache
@@ -38,6 +38,6 @@ private:
     ::std::unordered_map<::std::tuple<Args...>, result_t, tuple_hash> m_cache; // TODO dummy
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "toolpex/macros.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 class move_only
 {
@@ -18,6 +18,6 @@ public:
     move_only& operator=(move_only&) = delete;
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

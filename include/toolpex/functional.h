@@ -3,7 +3,7 @@
 
 #include "toolpex/macros.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 struct do_nothing
 {
@@ -11,6 +11,6 @@ struct do_nothing
     constexpr void operator()() const noexcept { }
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

@@ -7,7 +7,7 @@
 #include "toolpex/macros.h"
 #include "toolpex/is_specialization_of.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 template<typename Functor>
 struct number_of_parameters
@@ -41,6 +41,6 @@ concept is_std_chrono_duration = toolpex::is_specialization_of<Duration, ::std::
 template<typename Timepoint>
 concept is_std_chrono_time_point = toolpex::is_specialization_of<Timepoint, ::std::chrono::time_point>;
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

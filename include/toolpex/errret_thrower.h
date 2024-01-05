@@ -11,7 +11,7 @@
 #include "toolpex/exceptions.h"
 #include "toolpex/functional.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 template<typename ExceptType = ::std::runtime_error, ::std::default_initializable Logger = do_nothing>
 class errret_thrower
@@ -38,6 +38,6 @@ public:
     void operator << (::std::error_code ec) { operator()(::std::move(ec)); }
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

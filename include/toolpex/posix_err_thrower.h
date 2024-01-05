@@ -7,7 +7,7 @@
 #include "toolpex/move_only.h"
 #include "toolpex/exceptions.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 class posix_err_thrower : toolpex::move_only
 {
@@ -33,7 +33,7 @@ public:
 
 using pet = posix_err_thrower;
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif
 

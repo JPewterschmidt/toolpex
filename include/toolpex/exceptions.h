@@ -12,7 +12,7 @@
 #include "fmt/core.h"
 #include "toolpex/macros.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 [[noreturn]] inline void not_implemented(::std::string_view msg = {}, ::std::source_location sl = ::std::source_location::current())
 {
@@ -38,6 +38,6 @@ public:
     }
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

@@ -5,7 +5,7 @@
 #include <functional>
 #include <tuple>
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 class tuple_hash
 {
@@ -22,6 +22,6 @@ public:
     }
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif
