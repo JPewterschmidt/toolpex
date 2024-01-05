@@ -273,24 +273,24 @@ ipv6_address to_v6addr(ipv4_address v4a)
     return ret;
 }
 
-::sockaddr_storage
+::std::pair<::sockaddr_storage, size_t>
 ipv4_address::
 to_sockaddr(::in_port_t port) const
 {
     ::sockaddr_storage result{};
     auto buf = toolpex::to_sockaddr(*this, port);
     ::std::memcpy(&result, &buf, sizeof(buf));
-    return result;
+    return { result, sizeof(buf) };
 }
 
-::sockaddr_storage
+::std::pair<::sockaddr_storage, size_t>
 ipv6_address::
 to_sockaddr(::in_port_t port) const
 {
     ::sockaddr_storage result{};
     auto buf = toolpex::to_sockaddr(*this, port);
     ::std::memcpy(&result, &buf, sizeof(buf));
-    return result;   
+    return { result, sizeof(buf) };   
 }
 
 ::sockaddr_in6 
