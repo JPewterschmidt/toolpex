@@ -7,7 +7,7 @@
 #include <ranges>
 #include <vector>
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 namespace ip_address_literals
 {
@@ -75,10 +75,14 @@ make_v6(::std::string_view str)
 ::std::unique_ptr<ip_address> 
 ip_address::make(::std::string_view str)
 {
+    using namespace ::std::string_view_literals;
+
     if (str.contains('.'))
         return make_v4(str);
     else if (str.contains(':'))
         return make_v6(str);
+    else if (str == "localhost"sv)
+        return ::std::make_unique<ipv4_address>(0);
     return {};
 }
 
@@ -307,4 +311,4 @@ to_sockaddr(const ipv6_address& v6, ::in_port_t port)
     return result;
 }
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END

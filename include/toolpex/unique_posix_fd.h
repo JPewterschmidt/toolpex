@@ -11,7 +11,7 @@ extern "C"
     int close(int);
 }
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 class unique_posix_fd
 {
@@ -60,6 +60,6 @@ private:
     int m_fd{ -1 };
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

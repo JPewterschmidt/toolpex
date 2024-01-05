@@ -17,7 +17,7 @@
 #include <netinet/in.h>
 #include <memory>
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 class ip_address
 {
@@ -116,6 +116,6 @@ ipv6_address to_v6addr(ipv4_address v4a);
 ::sockaddr_in  to_sockaddr(const ipv4_address& v4, ::in_port_t port);
 ::sockaddr_in6 to_sockaddr(const ipv6_address& v6, ::in_port_t port);
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

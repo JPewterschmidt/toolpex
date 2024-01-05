@@ -4,7 +4,7 @@
 #include "toolpex/macros.h"
 #include <atomic>
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 class ref_count
 {
@@ -25,6 +25,6 @@ private:
     ::std::atomic_size_t m_count;
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

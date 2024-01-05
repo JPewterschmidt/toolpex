@@ -6,7 +6,7 @@
 
 #include "toolpex/macros.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 template<typename R, ::std::invocable<R&> Dtor>
 class unique_resource
@@ -53,6 +53,6 @@ protected:
     bool m_valid{ true };
 };
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif

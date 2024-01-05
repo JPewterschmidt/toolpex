@@ -7,7 +7,7 @@
 
 #include "toolpex/macros.h"
 
-TOOLPEX_NAMESAPCE_BEG
+TOOLPEX_NAMESPACE_BEG
 
 auto tic()
 {
@@ -22,6 +22,6 @@ auto tic()
     return ss.str();
 }
 
-TOOLPEX_NAMESAPCE_END
+TOOLPEX_NAMESPACE_END
 
 #endif
