@@ -75,10 +75,14 @@ make_v6(::std::string_view str)
 ::std::unique_ptr<ip_address> 
 ip_address::make(::std::string_view str)
 {
+    using namespace ::std::string_view_literals;
+
     if (str.contains('.'))
         return make_v4(str);
     else if (str.contains(':'))
         return make_v6(str);
+    else if (str == "localhost"sv)
+        return ::std::make_unique<ipv4_address>(0);
     return {};
 }
 

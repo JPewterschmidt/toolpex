@@ -36,6 +36,9 @@ public:
         m_p = nullptr;
     }
 
+    operator pointer() noexcept { return m_p; }
+    pointer operator ->() noexcept { return m_p; }
+
     ~allocator_ptr() noexcept
     {
         if (m_p && m_alloc)
