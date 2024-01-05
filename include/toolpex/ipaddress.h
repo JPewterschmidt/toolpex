@@ -25,7 +25,7 @@ class ip_address
 public:
     virtual ::std::string to_string() const = 0;
     virtual ~ip_address() noexcept {};
-    virtual ::std::pair<::sockaddr_storage, size_t> to_sockaddr(::in_port_t port) const = 0;
+    virtual ::std::pair<::sockaddr_storage, ::socklen_t> to_sockaddr(::in_port_t port) const = 0;
 
     static ::std::unique_ptr<ip_address> make(
         const ::sockaddr* addr, 
@@ -71,7 +71,7 @@ public:
     virtual ::std::string to_string() const override;
     uint32_t to_uint32() const noexcept;
     virtual ~ipv4_address() noexcept {};
-    virtual ::std::pair<::sockaddr_storage, size_t> to_sockaddr(::in_port_t port) const override;
+    virtual ::std::pair<::sockaddr_storage, ::socklen_t> to_sockaddr(::in_port_t port) const override;
 
     friend ::sockaddr_in 
     to_sockaddr(const ipv4_address& v4, ::in_port_t port);
@@ -96,7 +96,7 @@ public:
 
     virtual ::std::string to_string() const override;
     ::std::span<const uint16_t> as_uint16s() const noexcept;
-    virtual ::std::pair<::sockaddr_storage, size_t> to_sockaddr(::in_port_t port) const override;
+    virtual ::std::pair<::sockaddr_storage, ::socklen_t> to_sockaddr(::in_port_t port) const override;
 
     friend ipv6_address to_v6addr(ipv4_address v4a);
     virtual ~ipv6_address() noexcept {}

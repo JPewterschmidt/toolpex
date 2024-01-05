@@ -273,7 +273,7 @@ ipv6_address to_v6addr(ipv4_address v4a)
     return ret;
 }
 
-::std::pair<::sockaddr_storage, size_t>
+::std::pair<::sockaddr_storage, ::socklen_t>
 ipv4_address::
 to_sockaddr(::in_port_t port) const
 {
@@ -283,7 +283,7 @@ to_sockaddr(::in_port_t port) const
     return { result, sizeof(buf) };
 }
 
-::std::pair<::sockaddr_storage, size_t>
+::std::pair<::sockaddr_storage, ::socklen_t>
 ipv6_address::
 to_sockaddr(::in_port_t port) const
 {
