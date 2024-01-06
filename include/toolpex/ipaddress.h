@@ -2,6 +2,7 @@
 #define TOOLPEX_IPADDRESS_H
 
 #include "toolpex/macros.h"
+#include "toolpex/unique_posix_fd.h"
 
 #include <string_view>
 #include <string>
@@ -31,6 +32,7 @@ public:
         const ::sockaddr* addr, 
         ::socklen_t len);
     static ::std::unique_ptr<ip_address> make(::std::string_view str);
+    static ::std::unique_ptr<ip_address> getpeername(const unique_posix_fd& fd);
 };
 
 namespace ip_address_literals

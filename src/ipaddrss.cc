@@ -6,6 +6,8 @@
 #include <bit>
 #include <ranges>
 #include <vector>
+#include <sys/socket.h>
+#include "toolpex/errret_thrower.h"
 
 TOOLPEX_NAMESPACE_BEG
 
@@ -19,16 +21,27 @@ namespace ip_address_literals
 }
 
 ::std::unique_ptr<ip_address> 
+ip_address::
+getpeername(const unique_posix_fd& fd)
+{
+    errret_thrower et;
+    ::sockaddr_storage ss{};
+    ::socklen_t len;
+    et << ::getpeername(fd, (sockaddr*)&ss, &len);
+    return ip_address::make((sockaddr*)&ss, len);
+}
+
+::std::unique_ptr<ip_address> 
 ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 {
     if (addr == nullptr) return {};
-    if (len == sizeof(::sockaddr_in) || addr->sa_family == AF_INET)
+    if (len >= sizeof(::sockaddr_in) || addr->sa_family == AF_INET)
     {
         return ::std::make_unique<ipv4_address>(
             reinterpret_cast<const sockaddr_in*>(addr)
         );
     }
-    else if (len == sizeof(::sockaddr_in6) && addr->sa_family == AF_INET6)
+    else if (len >= sizeof(::sockaddr_in6) && addr->sa_family == AF_INET6)
     {
         return ::std::make_unique<ipv6_address>(
             reinterpret_cast<const sockaddr_in6*>(addr)
