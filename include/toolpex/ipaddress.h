@@ -28,11 +28,11 @@ public:
     virtual ~ip_address() noexcept {};
     virtual ::std::pair<::sockaddr_storage, ::socklen_t> to_sockaddr(::in_port_t port) const = 0;
 
-    static ::std::unique_ptr<ip_address> make(
-        const ::sockaddr* addr, 
-        ::socklen_t len);
+    static ::std::pair<::std::unique_ptr<ip_address>, ::in_port_t> 
+    make(const ::sockaddr* addr, ::socklen_t len);
+
     static ::std::unique_ptr<ip_address> make(::std::string_view str);
-    static ::std::unique_ptr<ip_address> getpeername(const unique_posix_fd& fd);
+    static ::std::pair<::std::unique_ptr<ip_address>, ::in_port_t> getpeername(const unique_posix_fd& fd);
 };
 
 namespace ip_address_literals

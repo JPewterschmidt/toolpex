@@ -11,8 +11,8 @@ using namespace ip_address_literals;
 TEST(ipaddress, v4endians)
 {
     auto ip = "127.0.0.1"_ip;
-    auto posixaddr = ip->to_sockaddr(8889);
-    auto ip2 = ip_address::make(
+    auto [posixaddr, sz] = ip->to_sockaddr(8889);
+    auto [ip2, port] = ip_address::make(
         reinterpret_cast<::sockaddr*>(&posixaddr), 
         sizeof(::sockaddr_in)
     );
@@ -22,8 +22,8 @@ TEST(ipaddress, v4endians)
 TEST(ipaddress, v6endians)
 {
     auto ip = "FC00:0000:130F:0000:0000:09C0:876A:130B"_ip;
-    auto posixaddr = ip->to_sockaddr(8889);
-    auto ip2 = ip_address::make(
+    auto [posixaddr, sz] = ip->to_sockaddr(8889);
+    auto [ip2, port] = ip_address::make(
         reinterpret_cast<::sockaddr*>(&posixaddr), 
         sizeof(::sockaddr_in6)
     );
@@ -33,7 +33,7 @@ TEST(ipaddress, v6endians)
 TEST(ipaddress, v4_with_pton)
 {
     auto ip = "127.0.0.1"_ip;
-    auto myposixaddr = ip->to_sockaddr(8889);
+    auto [myposixaddr, sz] = ip->to_sockaddr(8889);
     
     ::std::string_view sv{ "127.0.0.1" };
     char buf[sizeof(::in_addr)]{};
@@ -52,7 +52,7 @@ TEST(ipaddress, v4_with_pton)
 TEST(ipaddress, v6_with_pton)
 {
     auto ip = "FC00:0000:130F:0000:0000:09C0:876A:130B"_ip;
-    auto myposixaddr = ip->to_sockaddr(8889);
+    auto [myposixaddr, sz] = ip->to_sockaddr(8889);
     
     ::std::string_view sv{ "FC00:0000:130F:0000:0000:09C0:876A:130B" };
     char buf[sizeof(::in6_addr)]{};
@@ -66,4 +66,26 @@ TEST(ipaddress, v6_with_pton)
     ::std::memcpy(&mysock, &myposixaddr, sizeof(mysock));
 
     ASSERT_EQ(::std::memcmp(&mysock, &sock, sizeof(mysock)), 0);
+}
+
+TEST(ipaddress, v4_tosockaddr)
+{
+    auto ip = "127.0.0.1"_ip;
+    constexpr ::in_port_t right_port = 8889;
+    auto [myposixaddr, sz] = ip->to_sockaddr(right_port);
+
+    auto [newip, port] = ip_address::make((sockaddr*)&myposixaddr, sz);
+    ASSERT_EQ(port, right_port);
+    ASSERT_EQ(newip->to_string(), ip->to_string());
+}
+
+TEST(ipaddress, v6_tosockaddr)
+{
+    auto ip = "FC00:0000:130F:0000:0000:09C0:876A:130B"_ip;
+    constexpr ::in_port_t right_port = 8889;
+    auto [myposixaddr, sz] = ip->to_sockaddr(right_port);
+
+    auto [newip, port] = ip_address::make((sockaddr*)&myposixaddr, sz);
+    ASSERT_EQ(port, right_port);
+    ASSERT_EQ(newip->to_string(), ip->to_string());
 }

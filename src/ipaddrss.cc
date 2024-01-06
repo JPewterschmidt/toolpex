@@ -20,7 +20,7 @@ namespace ip_address_literals
     }
 }
 
-::std::unique_ptr<ip_address> 
+::std::pair<::std::unique_ptr<ip_address>, ::in_port_t>
 ip_address::
 getpeername(const unique_posix_fd& fd)
 {
@@ -31,27 +31,26 @@ getpeername(const unique_posix_fd& fd)
     return ip_address::make((sockaddr*)&ss, len);
 }
 
-::std::unique_ptr<ip_address> 
+::std::pair<::std::unique_ptr<ip_address>, ::in_port_t>
 ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 {
     if (addr == nullptr) return {};
-    if (len >= sizeof(::sockaddr_in) || addr->sa_family == AF_INET)
+    if (len >= sizeof(::sockaddr_in) && addr->sa_family == AF_INET)
     {
-        return ::std::make_unique<ipv4_address>(
-            reinterpret_cast<const sockaddr_in*>(addr)
-        );
+        const sockaddr_in* saddr = reinterpret_cast<const sockaddr_in*>(addr);
+        return {::std::make_unique<ipv4_address>(saddr), ::ntohs(saddr->sin_port) };
     }
     else if (len >= sizeof(::sockaddr_in6) && addr->sa_family == AF_INET6)
     {
-        return ::std::make_unique<ipv6_address>(
-            reinterpret_cast<const sockaddr_in6*>(addr)
-        );
+        const sockaddr_in6* saddr = reinterpret_cast<const sockaddr_in6*>(addr);
+        return { ::std::make_unique<ipv6_address>(saddr), ::ntohs(saddr->sin6_port) };
     }
     not_implemented("only support ipv4 and v6");
     return {};
 }
 
-static ::std::unique_ptr<ip_address>
+static 
+::std::unique_ptr<ip_address>
 make_v4(::std::string_view str)
 {
     namespace sv = ::std::ranges::views;
@@ -71,7 +70,8 @@ make_v4(::std::string_view str)
     );
 }
 
-static ::std::unique_ptr<ip_address>
+static 
+::std::unique_ptr<ip_address>
 make_v6(::std::string_view str)
 {
     char buf[sizeof(::in6_addr)]{};
@@ -82,7 +82,7 @@ make_v6(::std::string_view str)
         .sin6_family = AF_INET6, 
     };
     ::std::memcpy(&(temp.sin6_addr), buf, sizeof(::in6_addr));
-    return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in6));
+    return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in6)).first;
 }
 
 ::std::unique_ptr<ip_address> 
@@ -102,7 +102,7 @@ ip_address::make(::std::string_view str)
 ipv4_address::ipv4_address(const ::sockaddr_in* sock4)
 {
     if (sock4->sin_family != AF_INET) [[unlikely]]
-        throw ::std::logic_error{"you should call this ctor with a ipv4 sockaddr pointer!"};
+        throw ::std::logic_error{"the ::sockaddr_in* parameter is not for ipv4!!"};
     uint32_t temp{ sock4->sin_addr.s_addr };
     ::memcpy(ia_data.data(), &temp, sizeof(temp));
 }
@@ -115,7 +115,7 @@ ipv4_address::ipv4_address(const ipv4_address& other) noexcept
 ipv6_address::ipv6_address(const ::sockaddr_in6* s) 
 {
     if (s->sin6_family != AF_INET6) [[unlikely]]
-        throw ::std::logic_error{"you should call this ctor with a ipv6 sockaddr pointer!"};
+        throw ::std::logic_error{"the ::sockaddr_in6* parameter is not for ipv6!!"};
 
     ::std::array<uint16_t, 8> temp_data{};
     ::memcpy(temp_data.data(), &(s->sin6_addr.s6_addr), sizeof(temp_data));
