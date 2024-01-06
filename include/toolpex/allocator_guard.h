@@ -75,7 +75,7 @@ private:
         if (m_p && m_alloc)
         {
             ::std::allocator_traits<Alloc>::deallocate(*m_alloc, m_p, 1);
-            m_p;
+            m_p = nullptr;
         }
     }
 
