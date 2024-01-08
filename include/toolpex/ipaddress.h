@@ -24,7 +24,7 @@ TOOLPEX_NAMESPACE_BEG
 class ip_address
 {
 public:
-    using ptr = ::std::unique_ptr<ip_address>;
+    using ptr = ::std::shared_ptr<ip_address>;
 
 public:
     virtual ::std::string to_string() const = 0;
@@ -33,16 +33,16 @@ public:
     virtual int family() const noexcept = 0;
     virtual ptr dup() const = 0;
 
-    static ::std::pair<::std::unique_ptr<ip_address>, ::in_port_t> 
+    static ::std::pair<ip_address::ptr, ::in_port_t> 
     make(const ::sockaddr* addr, ::socklen_t len);
 
-    static ::std::unique_ptr<ip_address> make(::std::string_view str);
-    static ::std::pair<::std::unique_ptr<ip_address>, ::in_port_t> getpeername(const unique_posix_fd& fd);
+    static ip_address::ptr make(::std::string_view str);
+    static ::std::pair<ip_address::ptr, ::in_port_t> getpeername(const unique_posix_fd& fd);
 };
 
 namespace ip_address_literals
 {
-    ::std::unique_ptr<ip_address> 
+    ip_address::ptr 
     operator""_ip(const char* ipstr, ::std::size_t);
 }
 

@@ -13,14 +13,14 @@ TOOLPEX_NAMESPACE_BEG
 
 namespace ip_address_literals
 {
-    ::std::unique_ptr<ip_address> 
+    ip_address::ptr 
     operator""_ip(const char* ipstr, ::std::size_t len)
     {
         return ip_address::make({ ipstr, len });
     }
 }
 
-::std::pair<::std::unique_ptr<ip_address>, ::in_port_t>
+::std::pair<ip_address::ptr, ::in_port_t>
 ip_address::
 getpeername(const unique_posix_fd& fd)
 {
@@ -31,26 +31,26 @@ getpeername(const unique_posix_fd& fd)
     return ip_address::make((sockaddr*)&ss, len);
 }
 
-::std::pair<::std::unique_ptr<ip_address>, ::in_port_t>
+::std::pair<ip_address::ptr, ::in_port_t>
 ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 {
     if (addr == nullptr) return {};
     if (len >= sizeof(::sockaddr_in) && addr->sa_family == AF_INET)
     {
         const sockaddr_in* saddr = reinterpret_cast<const sockaddr_in*>(addr);
-        return {::std::make_unique<ipv4_address>(saddr), ::ntohs(saddr->sin_port) };
+        return {::std::make_shared<ipv4_address>(saddr), ::ntohs(saddr->sin_port) };
     }
     else if (len >= sizeof(::sockaddr_in6) && addr->sa_family == AF_INET6)
     {
         const sockaddr_in6* saddr = reinterpret_cast<const sockaddr_in6*>(addr);
-        return { ::std::make_unique<ipv6_address>(saddr), ::ntohs(saddr->sin6_port) };
+        return { ::std::make_shared<ipv6_address>(saddr), ::ntohs(saddr->sin6_port) };
     }
     not_implemented("only support ipv4 and v6");
     return {};
 }
 
 static 
-::std::unique_ptr<ip_address>
+ip_address::ptr
 make_v4(::std::string_view str)
 {
     namespace sv = ::std::ranges::views;
@@ -65,13 +65,13 @@ make_v4(::std::string_view str)
         buf.push_back(i);
     }
     if (buf.size() != 4) return {};
-    return ::std::make_unique<ipv4_address>(
+    return ::std::make_shared<ipv4_address>(
         buf[0], buf[1], buf[2], buf[3]
     );
 }
 
 static 
-::std::unique_ptr<ip_address>
+ip_address::ptr
 make_v6(::std::string_view str)
 {
     char buf[sizeof(::in6_addr)]{};
@@ -85,7 +85,7 @@ make_v6(::std::string_view str)
     return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in6)).first;
 }
 
-::std::unique_ptr<ip_address> 
+ip_address::ptr 
 ip_address::make(::std::string_view str)
 {
     using namespace ::std::string_view_literals;
@@ -95,7 +95,7 @@ ip_address::make(::std::string_view str)
     else if (str.contains(':'))
         return make_v6(str);
     else if (str == "localhost"sv)
-        return ::std::make_unique<ipv4_address>(0);
+        return ::std::make_shared<ipv4_address>(0);
     return {};
 }
 
@@ -328,14 +328,14 @@ ip_address::ptr
 ipv4_address::
 dup() const
 {
-    return ::std::make_unique<ipv4_address>(*this);
+    return ::std::make_shared<ipv4_address>(*this);
 }
 
 ip_address::ptr
 ipv6_address::
 dup() const
 {
-    return ::std::make_unique<ipv6_address>(*this);
+    return ::std::make_shared<ipv6_address>(*this);
 }
 
 TOOLPEX_NAMESPACE_END
