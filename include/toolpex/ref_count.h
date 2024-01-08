@@ -11,6 +11,11 @@ class ref_count
 public:
     constexpr ref_count() noexcept = default;
 
+    ref_count(size_t original_val) noexcept
+        : m_count{ original_val }
+    {
+    }
+
     auto fetch_add(size_t val = 1) noexcept
     {
         return m_count.fetch_add(val, ::std::memory_order_relaxed);
