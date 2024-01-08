@@ -24,14 +24,14 @@ TOOLPEX_NAMESPACE_BEG
 class ip_address
 {
 public:
-    using uptr = ::std::unique_ptr<ip_address>;
+    using ptr = ::std::unique_ptr<ip_address>;
 
 public:
     virtual ::std::string to_string() const = 0;
     virtual ~ip_address() noexcept {};
     virtual ::std::pair<::sockaddr_storage, ::socklen_t> to_sockaddr(::in_port_t port) const = 0;
     virtual int family() const noexcept = 0;
-    virtual uptr dup() const = 0;
+    virtual ptr dup() const = 0;
 
     static ::std::pair<::std::unique_ptr<ip_address>, ::in_port_t> 
     make(const ::sockaddr* addr, ::socklen_t len);
@@ -89,7 +89,7 @@ public:
     }
 
     int family() const noexcept override { return AF_INET; }
-    ip_address::uptr dup() const override;
+    ip_address::ptr dup() const override;
     
 private:
     ::std::array<uint8_t, 4> ia_data{};
@@ -119,7 +119,7 @@ public:
     to_sockaddr(const ipv6_address& v6, ::in_port_t port);
     
     int family() const noexcept override { return AF_INET6; }
-    ip_address::uptr dup() const override;
+    ip_address::ptr dup() const override;
 
 private:
     ::std::array<uint16_t, 8> i6a_data{};

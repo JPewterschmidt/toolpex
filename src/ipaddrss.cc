@@ -324,14 +324,14 @@ to_sockaddr(const ipv6_address& v6, ::in_port_t port)
     return result;
 }
 
-ip_address::uptr
+ip_address::ptr
 ipv4_address::
 dup() const
 {
     return ::std::make_unique<ipv4_address>(*this);
 }
 
-ip_address::uptr
+ip_address::ptr
 ipv6_address::
 dup() const
 {
