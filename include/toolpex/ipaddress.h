@@ -90,7 +90,23 @@ public:
 
     int family() const noexcept override { return AF_INET; }
     ip_address::ptr dup() const override;
-    
+
+public:
+    static ip_address::ptr get_loopback()  
+    { 
+        return ::std::make_shared<ipv4_address>(127, 0, 0, 1);
+    }
+
+    static ip_address::ptr get_broadcast() 
+    { 
+        return ::std::make_shared<ipv4_address>(255, 255, 255, 255);
+    }
+
+    static ip_address::ptr get_allzero()   
+    { 
+        return ::std::make_shared<ipv4_address>(0);
+    }
+
 private:
     ::std::array<uint8_t, 4> ia_data{};
 };
@@ -121,6 +137,10 @@ public:
     int family() const noexcept override { return AF_INET6; }
     ip_address::ptr dup() const override;
 
+public:
+    static ip_address::ptr get_loopback() { return ip_address::make("::1"); }
+    static ip_address::ptr get_allzero()  { return ip_address::make("::"); }
+
 private:
     ::std::array<uint16_t, 8> i6a_data{};
 };
@@ -129,13 +149,6 @@ private:
 ipv6_address to_v6addr(ipv4_address v4a);
 ::sockaddr_in  to_sockaddr(const ipv4_address& v4, ::in_port_t port);
 ::sockaddr_in6 to_sockaddr(const ipv6_address& v6, ::in_port_t port);
-
-extern const ip_address::ptr ipv4_loopback  = ip_address::make("127.0.0.1");
-extern const ip_address::ptr ipv4_broadcast = ip_address::make("255.255.255.255");
-extern const ip_address::ptr ipv4_allzero   = ip_address::make("0.0.0.0");
-
-extern const ip_address::ptr ipv6_loopback  = ip_address::make("::1");
-extern const ip_address::ptr ipv6_allzero   = ip_address::make("::");
 
 TOOLPEX_NAMESPACE_END
 

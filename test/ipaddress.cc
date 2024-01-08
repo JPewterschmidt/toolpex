@@ -98,3 +98,26 @@ TEST(ipaddress, family)
     ASSERT_EQ(ip1->family(), AF_INET6);
     ASSERT_EQ(ip2->family(), AF_INET);
 }
+
+TEST(ipaddress, useful)
+{
+    auto a1 = ipv4_address::get_loopback();
+    auto a2 = "127.0.0.1"_ip;
+    ASSERT_EQ(a1->to_string(), a2->to_string());
+
+    a1 = ipv4_address::get_broadcast();
+    a2 = "255.255.255.255"_ip;
+    ASSERT_EQ(a1->to_string(), a2->to_string());
+
+    a1 = ipv4_address::get_allzero();
+    a2 = "0.0.0.0"_ip;
+    ASSERT_EQ(a1->to_string(), a2->to_string());
+
+    a1 = ipv6_address::get_allzero();
+    a2 = "::"_ip;
+    ASSERT_EQ(a1->to_string(), a2->to_string());
+
+    a1 = ipv6_address::get_loopback();
+    a2 = "::1"_ip;
+    ASSERT_EQ(a1->to_string(), a2->to_string());
+}
