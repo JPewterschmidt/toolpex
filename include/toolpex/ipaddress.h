@@ -130,6 +130,13 @@ ipv6_address to_v6addr(ipv4_address v4a);
 ::sockaddr_in  to_sockaddr(const ipv4_address& v4, ::in_port_t port);
 ::sockaddr_in6 to_sockaddr(const ipv6_address& v6, ::in_port_t port);
 
+extern const ip_address::ptr ipv4_loopback  = ip_address::make("127.0.0.1");
+extern const ip_address::ptr ipv4_broadcast = ip_address::make("255.255.255.255");
+extern const ip_address::ptr ipv4_allzero   = ip_address::make("0.0.0.0");
+
+extern const ip_address::ptr ipv6_loopback  = ip_address::make("::1");
+extern const ip_address::ptr ipv6_allzero   = ip_address::make("::");
+
 TOOLPEX_NAMESPACE_END
 
 #endif
