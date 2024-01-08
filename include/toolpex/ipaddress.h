@@ -27,6 +27,7 @@ public:
     virtual ::std::string to_string() const = 0;
     virtual ~ip_address() noexcept {};
     virtual ::std::pair<::sockaddr_storage, ::socklen_t> to_sockaddr(::in_port_t port) const = 0;
+    virtual int family() const noexcept = 0;
 
     static ::std::pair<::std::unique_ptr<ip_address>, ::in_port_t> 
     make(const ::sockaddr* addr, ::socklen_t len);
@@ -82,6 +83,8 @@ public:
     {
         return a.to_uint32() <=> b.to_uint32();
     }
+
+    int family() const noexcept override { return AF_INET; }
     
 private:
     ::std::array<uint8_t, 4> ia_data{};
@@ -110,6 +113,8 @@ public:
     ::sockaddr_in6 
     to_sockaddr(const ipv6_address& v6, ::in_port_t port);
     
+    int family() const noexcept override { return AF_INET6; }
+
 private:
     ::std::array<uint16_t, 8> i6a_data{};
 };
