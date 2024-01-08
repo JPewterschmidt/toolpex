@@ -4,6 +4,7 @@
 #include <string_view>
 #include <arpa/inet.h>
 #include <cstring>
+#include "toolpex/exceptions.h"
 
 using namespace toolpex;
 using namespace ip_address_literals;
@@ -103,21 +104,58 @@ TEST(ipaddress, useful)
 {
     auto a1 = ipv4_address::get_loopback();
     auto a2 = "127.0.0.1"_ip;
+    ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
     a1 = ipv4_address::get_broadcast();
     a2 = "255.255.255.255"_ip;
+    ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
     a1 = ipv4_address::get_allzero();
     a2 = "0.0.0.0"_ip;
+    ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
     a1 = ipv6_address::get_allzero();
     a2 = "::"_ip;
+    ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
     a1 = ipv6_address::get_loopback();
     a2 = "::1"_ip;
+    ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
+
+    a1 = ipv4_address::get_localhost();
+    a2 = ipv4_address::get_allzero(); // TODO
+    ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
+    ASSERT_EQ(a1->to_string(), a2->to_string());
+}
+
+TEST(ipaddress, wrong_usage)
+{
+    bool flag {};
+
+    ::std::vector<::std::string_view> wrong_ipstrs{ 
+        "fuck you", 
+        "8890", 
+        //"ip = ::1",  // TODO
+        "::192.168.0.1", 
+        "192.168.0", 
+        "192.168.0.1::1", 
+        "127.0.0.0.0.0.1",
+        "我是你爹",
+    };
+
+    for (::std::string_view str : wrong_ipstrs)
+    {
+        flag = false;
+        try { auto _ = ip_address::make(str); }
+        catch (const toolpex::ip_address_exception& e)
+        {
+            flag = true;
+        }
+        ASSERT_TRUE(flag);
+    }
 }
