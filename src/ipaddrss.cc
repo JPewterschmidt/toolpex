@@ -51,9 +51,29 @@ ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 
 static 
 ip_address::ptr
+v4_localhost()
+{
+    char buf[sizeof(::in_addr)]{};
+    if (int s = ::inet_pton(AF_INET, "localhost", &buf); s <= 0)
+        return {};
+
+    ::sockaddr_in temp{
+        .sin_family = AF_INET, 
+    };
+    ::std::memcpy(&(temp.sin_addr), buf, sizeof(::in_addr));
+    return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in)).first;
+}
+
+static 
+ip_address::ptr
 make_v4(::std::string_view str)
 {
     namespace sv = ::std::ranges::views;
+    if (str == "localhost")
+    {
+        return v4_localhost();
+    }
+
     ::std::vector<uint8_t> buf;
     buf.reserve(4);
     for (const auto i : str 
@@ -83,6 +103,13 @@ make_v6(::std::string_view str)
     };
     ::std::memcpy(&(temp.sin6_addr), buf, sizeof(::in6_addr));
     return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in6)).first;
+}
+
+static inline
+ip_address::ptr
+v6_localhost()
+{
+    return make_v6("localhost");
 }
 
 ip_address::ptr 
@@ -336,6 +363,55 @@ ipv6_address::
 dup() const
 {
     return ::std::make_shared<ipv6_address>(*this);
+}
+
+ip_address::ptr
+ipv4_address::get_loopback()
+{
+    static ip_address::ptr result = ::std::make_shared<ipv4_address>(127, 0, 0, 1);
+    return result;
+}
+
+ip_address::ptr
+ipv4_address::get_broadcast()
+{
+    static ip_address::ptr result = ::std::make_shared<ipv4_address>(255, 255, 255, 255);
+    return result;
+}
+
+ip_address::ptr
+ipv4_address::get_allzero()
+{
+    static ip_address::ptr result = ::std::make_shared<ipv4_address>(0);
+    return result;
+}
+
+ip_address::ptr
+ipv4_address::get_localhost()
+{
+    static ip_address::ptr result = v4_localhost();
+    return result;
+}
+
+ip_address::ptr
+ipv6_address::get_loopback()
+{
+    static ip_address::ptr result = ip_address::make("::1");
+    return result;
+}
+
+ip_address::ptr
+ipv6_address::get_allzero()
+{
+    static ip_address::ptr result = ip_address::make("::");
+    return result;
+}
+
+ip_address::ptr
+ipv6_address::get_localhost()
+{
+    static ip_address::ptr result = v6_localhost();
+    return result;
 }
 
 TOOLPEX_NAMESPACE_END

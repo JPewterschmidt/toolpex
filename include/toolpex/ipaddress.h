@@ -92,20 +92,10 @@ public:
     ip_address::ptr dup() const override;
 
 public:
-    static ip_address::ptr get_loopback()  
-    { 
-        return ::std::make_shared<ipv4_address>(127, 0, 0, 1);
-    }
-
-    static ip_address::ptr get_broadcast() 
-    { 
-        return ::std::make_shared<ipv4_address>(255, 255, 255, 255);
-    }
-
-    static ip_address::ptr get_allzero()   
-    { 
-        return ::std::make_shared<ipv4_address>(0);
-    }
+    static ip_address::ptr get_loopback();
+    static ip_address::ptr get_broadcast();
+    static ip_address::ptr get_allzero();
+    static ip_address::ptr get_localhost();
 
 private:
     ::std::array<uint8_t, 4> ia_data{};
@@ -138,8 +128,9 @@ public:
     ip_address::ptr dup() const override;
 
 public:
-    static ip_address::ptr get_loopback() { return ip_address::make("::1"); }
-    static ip_address::ptr get_allzero()  { return ip_address::make("::"); }
+    static ip_address::ptr get_loopback();
+    static ip_address::ptr get_allzero();
+    static ip_address::ptr get_localhost();
 
 private:
     ::std::array<uint16_t, 8> i6a_data{};
