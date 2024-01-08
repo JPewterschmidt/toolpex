@@ -17,6 +17,11 @@ template<typename ExceptType = ::std::runtime_error, ::std::default_initializabl
 class errret_thrower
 {
 public:
+    errret_thrower() noexcept
+    {
+        errno = 0;
+    }
+
     int operator()(int err)
     {
         if (err >= 0) return err;

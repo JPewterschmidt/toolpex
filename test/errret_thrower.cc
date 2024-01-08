@@ -7,7 +7,6 @@ using namespace ::std::string_view_literals;
 
 TEST(errret_thrower, negative_1)
 {
-    errno = 22;
     toolpex::errret_thrower et;
     ASSERT_EQ(et(1), 1);
     ASSERT_EQ(et(0), 0);
@@ -15,11 +14,12 @@ TEST(errret_thrower, negative_1)
     
     try
     {
+        errno = 22;
         et << -1;
     }
     catch (::std::runtime_error& e)
     {
-        ASSERT_EQ(e.what(), "Invalid argument"sv);
+        ASSERT_EQ(::std::string_view{ e.what() }, "Invalid argument"sv);
         success_flag = true;
     }
 

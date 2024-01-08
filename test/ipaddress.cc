@@ -89,3 +89,12 @@ TEST(ipaddress, v6_tosockaddr)
     ASSERT_EQ(port, right_port);
     ASSERT_EQ(newip->to_string(), ip->to_string());
 }
+
+TEST(ipaddress, family)
+{
+    auto ip1 = "FC00:0000:130F:0000:0000:09C0:876A:130B"_ip;
+    auto ip2 = "127.0.0.1"_ip;
+    
+    ASSERT_EQ(ip1->family(), AF_INET6);
+    ASSERT_EQ(ip2->family(), AF_INET);
+}

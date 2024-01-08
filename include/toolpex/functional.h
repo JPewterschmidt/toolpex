@@ -2,6 +2,7 @@
 #define TOOLPEX_FUNCTIONAL_H
 
 #include "toolpex/macros.h"
+#include <functional>
 
 TOOLPEX_NAMESPACE_BEG
 
