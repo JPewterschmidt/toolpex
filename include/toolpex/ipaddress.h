@@ -36,6 +36,18 @@ public:
     static ::std::pair<ip_address::ptr, ::in_port_t> 
     make(const ::sockaddr* addr, ::socklen_t len);
 
+    /*  \brief Build a ipaddress from string
+     *
+     *  Automaticall detect which family it should be
+     *  Never return a nullptr
+     *
+     *  \return the smart pointer which point to a object 
+     *          of the pure virtual base class `ip_address`.
+     *          Never be a nullptr.
+     *
+     *  \attention If there're something wrong, it will throw a exception `toolpex::ip_address_exception`
+     *  \see `ip_address_exception`
+     */
     static ip_address::ptr make(::std::string_view str);
     static ::std::pair<ip_address::ptr, ::in_port_t> getpeername(const unique_posix_fd& fd);
 };

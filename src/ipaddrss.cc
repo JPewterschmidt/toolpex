@@ -34,7 +34,10 @@ getpeername(const unique_posix_fd& fd)
 ::std::pair<ip_address::ptr, ::in_port_t>
 ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 {
-    if (addr == nullptr) return {};
+    if (addr == nullptr) 
+    {
+        throw ip_address_exception{ "the ::sockaddr parameter is nullptr!" };
+    }
     if (len >= sizeof(::sockaddr_in) && addr->sa_family == AF_INET)
     {
         const sockaddr_in* saddr = reinterpret_cast<const sockaddr_in*>(addr);
@@ -45,7 +48,7 @@ ip_address::make(const ::sockaddr* addr, ::socklen_t len)
         const sockaddr_in6* saddr = reinterpret_cast<const sockaddr_in6*>(addr);
         return { ::std::make_shared<ipv6_address>(saddr), ::ntohs(saddr->sin6_port) };
     }
-    not_implemented("only support ipv4 and v6");
+    throw ip_address_exception("only support ipv4 and v6");
     return {};
 }
 
@@ -54,8 +57,9 @@ ip_address::ptr
 v4_localhost()
 {
     char buf[sizeof(::in_addr)]{};
-    if (int s = ::inet_pton(AF_INET, "localhost", &buf); s <= 0)
-        return {};
+    errno = 0;
+    if (int s = ::inet_pton(AF_INET, "localhost", &buf); s <= -1)
+        throw ip_address_exception{ errno };
 
     ::sockaddr_in temp{
         .sin_family = AF_INET, 
@@ -84,7 +88,13 @@ make_v4(::std::string_view str)
     {
         buf.push_back(i);
     }
-    if (buf.size() != 4) return {};
+    if (buf.size() != 4) 
+    {
+        throw ip_address_exception{ 
+            "there should be 4 number saperated by dot "
+            "to represent a ipv4 address!" 
+        };
+    }
     return ::std::make_shared<ipv4_address>(
         buf[0], buf[1], buf[2], buf[3]
     );
@@ -95,8 +105,9 @@ ip_address::ptr
 make_v6(::std::string_view str)
 {
     char buf[sizeof(::in6_addr)]{};
-    if (int s = ::inet_pton(AF_INET6, str.data(), &buf); s <= 0)
-        return {};
+    errno = 0;
+    if (int s = ::inet_pton(AF_INET6, str.data(), &buf); s <= -1)
+        throw ipv4_address{ errno };
 
     ::sockaddr_in6 temp{
         .sin6_family = AF_INET6, 
@@ -117,12 +128,13 @@ ip_address::make(::std::string_view str)
 {
     using namespace ::std::string_view_literals;
 
-    if (str.contains('.'))
+    if (str.contains('.') && !str.contains(":"))
         return make_v4(str);
-    else if (str.contains(':'))
+    else if (str.contains(':') && !str.contains("."))
         return make_v6(str);
     else if (str == "localhost"sv)
         return ::std::make_shared<ipv4_address>(0);
+    throw ip_address_exception{ "bad str to convert to a ipaddress." };
     return {};
 }
 
