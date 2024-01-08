@@ -52,6 +52,8 @@ public:
     static ::std::pair<ip_address::ptr, ::in_port_t> getpeername(const unique_posix_fd& fd);
 };
 
+::std::ostream& operator<<(::std::ostream& os, ip_address::ptr addr);
+
 namespace ip_address_literals
 {
     ip_address::ptr 
@@ -107,7 +109,6 @@ public:
     static ip_address::ptr get_loopback();
     static ip_address::ptr get_broadcast();
     static ip_address::ptr get_allzero();
-    static ip_address::ptr get_localhost();
 
 private:
     ::std::array<uint8_t, 4> ia_data{};
@@ -142,7 +143,6 @@ public:
 public:
     static ip_address::ptr get_loopback();
     static ip_address::ptr get_allzero();
-    static ip_address::ptr get_localhost();
 
 private:
     ::std::array<uint16_t, 8> i6a_data{};

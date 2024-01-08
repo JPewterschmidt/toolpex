@@ -20,5 +20,6 @@ void func()
  
 int main()
 {
-    auto _ = "ip = ::1"_ip;
+    auto ip1 = "::192.168.0.1"_ip;
+    ::std::cout << ip1;
 }

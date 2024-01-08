@@ -8,6 +8,8 @@
 #include <vector>
 #include <sys/socket.h>
 #include "toolpex/errret_thrower.h"
+#include <cassert>
+#include <netdb.h>
 
 TOOLPEX_NAMESPACE_BEG
 
@@ -18,6 +20,13 @@ namespace ip_address_literals
     {
         return ip_address::make({ ipstr, len });
     }
+}
+
+::std::ostream& 
+operator<<(::std::ostream& os, ip_address::ptr addr)
+{
+    assert(!!addr);
+    return os << addr->to_string();
 }
 
 ::std::pair<ip_address::ptr, ::in_port_t>
@@ -54,29 +63,9 @@ ip_address::make(const ::sockaddr* addr, ::socklen_t len)
 
 static 
 ip_address::ptr
-v4_localhost()
-{
-    char buf[sizeof(::in_addr)]{};
-    errno = 0;
-    if (int s = ::inet_pton(AF_INET, "localhost", &buf); s <= -1)
-        throw ip_address_exception{ errno };
-
-    ::sockaddr_in temp{
-        .sin_family = AF_INET, 
-    };
-    ::std::memcpy(&(temp.sin_addr), buf, sizeof(::in_addr));
-    return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in)).first;
-}
-
-static 
-ip_address::ptr
 make_v4(::std::string_view str)
 {
     namespace sv = ::std::ranges::views;
-    if (str == "localhost")
-    {
-        return v4_localhost();
-    }
 
     ::std::vector<uint8_t> buf;
     buf.reserve(4);
@@ -112,15 +101,24 @@ make_v6(::std::string_view str)
     ::sockaddr_in6 temp{
         .sin6_family = AF_INET6, 
     };
+    const auto backup = temp;
     ::std::memcpy(&(temp.sin6_addr), buf, sizeof(::in6_addr));
-    return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in6)).first;
-}
+    
+    const auto has_shouldnt_cause_zero = [](auto str) noexcept -> bool { 
+        return ::std::ranges::find_if(str, [](char c) noexcept -> bool {
+            return c != ':' && c != '0';
+        }) != str.end();
+    };
 
-static inline
-ip_address::ptr
-v6_localhost()
-{
-    return make_v6("localhost");
+    if (::std::memcmp(&backup, &temp, sizeof(temp)) == 0 && has_shouldnt_cause_zero(str)) 
+    {
+        throw ip_address_exception{ 
+            "you have passed a stupid str "
+            "which you wanna make a ipv6 addr from!" 
+        };
+    }
+
+    return ip_address::make(reinterpret_cast<::sockaddr*>(&temp), sizeof(::sockaddr_in6)).first;
 }
 
 ip_address::ptr 
@@ -130,10 +128,20 @@ ip_address::make(::std::string_view str)
 
     if (str.contains('.') && !str.contains(":"))
         return make_v4(str);
-    else if (str.contains(':') && !str.contains("."))
+    else if (str.contains(':'))
         return make_v6(str);
     else if (str == "localhost"sv)
-        return ::std::make_shared<ipv4_address>(0);
+    {
+        throw ip_address_exception{ 
+            "`localhost` are actually a hostname "
+            "represent the local machine, "
+            "you can resolve it, then you get the ipaddress. "
+            "You can do this with "
+            "POSIX function `getaddrinfo` or "
+            "`toolpex::getaddrinfo` which a wrapper of the eariler one." 
+        };
+    }
+
     throw ip_address_exception{ "bad str to convert to a ipaddress." };
     return {};
 }
@@ -399,13 +407,6 @@ ipv4_address::get_allzero()
 }
 
 ip_address::ptr
-ipv4_address::get_localhost()
-{
-    static ip_address::ptr result = v4_localhost();
-    return result;
-}
-
-ip_address::ptr
 ipv6_address::get_loopback()
 {
     static ip_address::ptr result = ip_address::make("::1");
@@ -416,13 +417,6 @@ ip_address::ptr
 ipv6_address::get_allzero()
 {
     static ip_address::ptr result = ip_address::make("::");
-    return result;
-}
-
-ip_address::ptr
-ipv6_address::get_localhost()
-{
-    static ip_address::ptr result = v6_localhost();
     return result;
 }
 

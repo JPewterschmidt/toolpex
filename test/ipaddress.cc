@@ -6,14 +6,13 @@
 #include <cstring>
 #include "toolpex/exceptions.h"
 
-using namespace toolpex;
-using namespace ip_address_literals;
+using namespace toolpex::ip_address_literals;
 
 TEST(ipaddress, v4endians)
 {
     auto ip = "127.0.0.1"_ip;
     auto [posixaddr, sz] = ip->to_sockaddr(8889);
-    auto [ip2, port] = ip_address::make(
+    auto [ip2, port] = toolpex::ip_address::make(
         reinterpret_cast<::sockaddr*>(&posixaddr), 
         sizeof(::sockaddr_in)
     );
@@ -24,7 +23,7 @@ TEST(ipaddress, v6endians)
 {
     auto ip = "FC00:0000:130F:0000:0000:09C0:876A:130B"_ip;
     auto [posixaddr, sz] = ip->to_sockaddr(8889);
-    auto [ip2, port] = ip_address::make(
+    auto [ip2, port] = toolpex::ip_address::make(
         reinterpret_cast<::sockaddr*>(&posixaddr), 
         sizeof(::sockaddr_in6)
     );
@@ -75,7 +74,7 @@ TEST(ipaddress, v4_tosockaddr)
     constexpr ::in_port_t right_port = 8889;
     auto [myposixaddr, sz] = ip->to_sockaddr(right_port);
 
-    auto [newip, port] = ip_address::make((sockaddr*)&myposixaddr, sz);
+    auto [newip, port] = toolpex::ip_address::make((sockaddr*)&myposixaddr, sz);
     ASSERT_EQ(port, right_port);
     ASSERT_EQ(newip->to_string(), ip->to_string());
 }
@@ -86,7 +85,7 @@ TEST(ipaddress, v6_tosockaddr)
     constexpr ::in_port_t right_port = 8889;
     auto [myposixaddr, sz] = ip->to_sockaddr(right_port);
 
-    auto [newip, port] = ip_address::make((sockaddr*)&myposixaddr, sz);
+    auto [newip, port] = toolpex::ip_address::make((sockaddr*)&myposixaddr, sz);
     ASSERT_EQ(port, right_port);
     ASSERT_EQ(newip->to_string(), ip->to_string());
 }
@@ -102,33 +101,28 @@ TEST(ipaddress, family)
 
 TEST(ipaddress, useful)
 {
-    auto a1 = ipv4_address::get_loopback();
+    auto a1 = toolpex::ipv4_address::get_loopback();
     auto a2 = "127.0.0.1"_ip;
     ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
-    a1 = ipv4_address::get_broadcast();
+    a1 = toolpex::ipv4_address::get_broadcast();
     a2 = "255.255.255.255"_ip;
     ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
-    a1 = ipv4_address::get_allzero();
+    a1 = toolpex::ipv4_address::get_allzero();
     a2 = "0.0.0.0"_ip;
     ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
-    a1 = ipv6_address::get_allzero();
+    a1 = toolpex::ipv6_address::get_allzero();
     a2 = "::"_ip;
     ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 
-    a1 = ipv6_address::get_loopback();
+    a1 = toolpex::ipv6_address::get_loopback();
     a2 = "::1"_ip;
-    ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
-    ASSERT_EQ(a1->to_string(), a2->to_string());
-
-    a1 = ipv4_address::get_localhost();
-    a2 = ipv4_address::get_allzero(); // TODO
     ASSERT_TRUE(a1 != nullptr && a2 != nullptr);
     ASSERT_EQ(a1->to_string(), a2->to_string());
 }
@@ -140,8 +134,7 @@ TEST(ipaddress, wrong_usage)
     ::std::vector<::std::string_view> wrong_ipstrs{ 
         "fuck you", 
         "8890", 
-        //"ip = ::1",  // TODO
-        "::192.168.0.1", 
+        "ip = ::1", 
         "192.168.0", 
         "192.168.0.1::1", 
         "127.0.0.0.0.0.1",
@@ -151,11 +144,18 @@ TEST(ipaddress, wrong_usage)
     for (::std::string_view str : wrong_ipstrs)
     {
         flag = false;
-        try { auto _ = ip_address::make(str); }
+        try { auto _ = toolpex::ip_address::make(str); }
         catch (const toolpex::ip_address_exception& e)
         {
             flag = true;
         }
         ASSERT_TRUE(flag);
     }
+}
+
+TEST(ipaddress, operator_leftleft)
+{
+    ::std::stringstream ss;
+    ss << "::1"_ip;
+    ASSERT_EQ(ss.str(), "::1"_ip->to_string());
 }
