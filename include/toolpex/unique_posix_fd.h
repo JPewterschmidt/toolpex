@@ -52,7 +52,7 @@ public:
             ::close(release());
     }
 
-    bool valid() const noexcept { return m_fd < 0; }
+    bool valid() const noexcept { return m_fd >= 0; }
 
 private:
     int release() noexcept { return ::std::exchange(m_fd, -1); }
