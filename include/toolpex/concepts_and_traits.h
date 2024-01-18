@@ -41,6 +41,32 @@ concept is_std_chrono_duration = toolpex::is_specialization_of<Duration, ::std::
 template<typename Timepoint>
 concept is_std_chrono_time_point = toolpex::is_specialization_of<Timepoint, ::std::chrono::time_point>;
 
+template <typename Callable>
+struct get_return_type
+{
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type<Ret (Args...)> 
+{
+    using type = Ret;
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type<Ret (*) (Args...)> 
+{
+    using type = Ret;
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type<Ret (&) (Args...)> 
+{
+    using type = Ret;
+};
+
+template <typename Callable>
+using get_return_type_t = typename get_return_type<Callable>::type;
+
 TOOLPEX_NAMESPACE_END
 
 #endif
