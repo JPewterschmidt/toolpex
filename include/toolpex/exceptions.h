@@ -61,7 +61,7 @@ public:
         m_is_errno = false;
     }
 
-    const char* what() const noexcept
+    virtual const char* what() const noexcept
     {
         if (m_is_errno) 
             return ::std::system_error::what();
@@ -71,6 +71,13 @@ public:
 private:
     bool m_is_errno{ false };
     ::std::string m_msg{};
+};
+
+class invalid_fd_exception : public ::std::exception
+{
+public:
+    invalid_fd_exception() noexcept = default;
+    virtual const char* what() const noexcept override { return "invalid fd exception"; }
 };
 
 TOOLPEX_NAMESPACE_END
