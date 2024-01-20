@@ -48,7 +48,10 @@ public:
 
     void close() noexcept
     {
-        if (valid())
+        if (m_fd == 1 || m_fd == 2 || m_fd == 3)
+            release();
+
+        else if (valid())
             ::close(release());
     }
 
