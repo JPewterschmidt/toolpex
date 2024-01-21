@@ -42,38 +42,44 @@ template<typename Timepoint>
 concept is_std_chrono_time_point = toolpex::is_specialization_of<Timepoint, ::std::chrono::time_point>;
 
 template <typename Callable>
+struct get_return_type_helper
+{
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type_helper<Ret (Args...)> 
+{
+    using type = Ret;
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type_helper<Ret (*) (Args...)> 
+{
+    using type = Ret;
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type_helper<Ret (&) (Args...)> 
+{
+    using type = Ret;
+};
+
+template <typename F>
+struct get_return_type_helper<::std::function<F>> 
+{
+    using type = ::std::function<F>::result_type;
+};
+
+template <typename F>
+struct get_return_type_helper<::std::move_only_function<F>> 
+{
+    using type = ::std::function<F>::result_type;
+};
+
+template <typename Callable>
 struct get_return_type
 {
-};
-
-template <typename Ret, typename... Args>
-struct get_return_type<Ret (Args...)> 
-{
-    using type = Ret;
-};
-
-template <typename Ret, typename... Args>
-struct get_return_type<Ret (*) (Args...)> 
-{
-    using type = Ret;
-};
-
-template <typename Ret, typename... Args>
-struct get_return_type<Ret (&) (Args...)> 
-{
-    using type = Ret;
-};
-
-template <typename F>
-struct get_return_type<::std::function<F>> 
-{
-    using type = ::std::function<F>::result_type;
-};
-
-template <typename F>
-struct get_return_type<::std::move_only_function<F>> 
-{
-    using type = ::std::function<F>::result_type;
+    using type = get_return_type_helper<::std::remove_pointer_t<::std::remove_reference_t<Callable>>>::type;
 };
 
 template <typename Callable>
