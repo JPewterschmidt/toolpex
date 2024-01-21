@@ -64,6 +64,18 @@ struct get_return_type<Ret (&) (Args...)>
     using type = Ret;
 };
 
+template <typename Ret, typename... Args>
+struct get_return_type<::std::function<Ret(Args...)>> 
+{
+    using type = Ret;
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type<::std::move_only_function<Ret(Args...)>> 
+{
+    using type = Ret;
+};
+
 template <typename Callable>
 using get_return_type_t = typename get_return_type<Callable>::type;
 
