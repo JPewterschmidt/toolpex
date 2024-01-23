@@ -8,9 +8,17 @@
 
 TOOLPEX_NAMESPACE_BEG
 
-template<typename R, ::std::invocable<R&> Dtor>
+template<typename R, ::std::invocable<R*> Dtor>
 class unique_resource
 {
+public:
+    using value_type = R;
+    using deleter_type = Dtor;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+
 public:
     unique_resource(R r, Dtor d)
         : m_resource{ ::std::forward<decltype(r)>(r) }, 
@@ -18,11 +26,11 @@ public:
     {
     }
 
-    ~unique_resource() noexcept(noexcept(Dtor{}(::std::declval<R&>())))
+    ~unique_resource() noexcept
     {
         if (m_valid)
         {
-            m_dtor(m_resource);
+            m_dtor(&m_resource);
             m_valid = false;
         }
     }
@@ -46,6 +54,11 @@ public:
 
         return *this;
     }
+
+    reference       operator  *()       noexcept { return m_resource;  }
+    const_reference operator  *() const noexcept { return m_resource;  }
+    pointer         operator ->()       noexcept { return &m_resource; }
+    const_pointer   operator ->() const noexcept { return &m_resource; }
 
 protected:
     R m_resource;
