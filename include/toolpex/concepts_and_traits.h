@@ -64,6 +64,24 @@ struct get_return_type_helper<Ret (&) (Args...)>
     using type = Ret;
 };
 
+template <typename Ret, typename... Args>
+struct get_return_type_helper<Ret (Args...) noexcept> 
+{
+    using type = Ret;
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type_helper<Ret (*) (Args...) noexcept> 
+{
+    using type = Ret;
+};
+
+template <typename Ret, typename... Args>
+struct get_return_type_helper<Ret (&) (Args...) noexcept> 
+{
+    using type = Ret;
+};
+
 template <typename F>
 struct get_return_type_helper<::std::function<F>> 
 {

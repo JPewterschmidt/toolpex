@@ -25,6 +25,7 @@ namespace
     
     ::std::function<double()> dummy7;
     double dummy8() { return 1.0; }
+    double dummy9() noexcept { return 1.0; }
 }
 
 TEST(number_of_parameters, basic)
@@ -41,5 +42,7 @@ TEST(get_return_type, basic)
 {
     ::std::string name1 = typeid(get_return_type_t<decltype(dummy7)>).name();
     ::std::string name2 = typeid(get_return_type_t<decltype(dummy8)>).name();
+    ::std::string name3 = typeid(get_return_type_t<decltype(dummy9)>).name();
     ASSERT_EQ(name1, name2);
+    ASSERT_EQ(name1, name3);
 }
