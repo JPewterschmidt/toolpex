@@ -25,6 +25,11 @@ public:
     {
         return m_count.fetch_sub(val, ::std::memory_order_acq_rel);
     }
+
+    auto load(auto order = ::std::memory_order_seq_cst) const noexcept
+    {
+        return m_count.load(order);
+    }
     
 private:
     ::std::atomic_size_t m_count;
