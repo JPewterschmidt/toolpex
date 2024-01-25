@@ -3,6 +3,7 @@
 
 #include "toolpex/macros.h"
 #include <atomic>
+#include <cstddef>
 
 TOOLPEX_NAMESPACE_BEG
 
@@ -11,17 +12,17 @@ class ref_count
 public:
     constexpr ref_count() noexcept = default;
 
-    ref_count(size_t original_val) noexcept
+    ref_count(::std::ptrdiff_t original_val) noexcept
         : m_count{ original_val }
     {
     }
 
-    auto fetch_add(size_t val = 1) noexcept
+    auto fetch_add(::std::ptrdiff_t val = 1) noexcept
     {
         return m_count.fetch_add(val, ::std::memory_order_relaxed);
     }
 
-    auto fetch_sub(size_t val = 1) noexcept
+    auto fetch_sub(::std::ptrdiff_t val = 1) noexcept
     {
         return m_count.fetch_sub(val, ::std::memory_order_acq_rel);
     }
@@ -32,7 +33,7 @@ public:
     }
     
 private:
-    ::std::atomic_size_t m_count;
+    ::std::atomic_ptrdiff_t m_count;
 };
 
 TOOLPEX_NAMESPACE_END
