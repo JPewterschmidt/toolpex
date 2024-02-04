@@ -155,4 +155,6 @@ ipv6_address to_v6addr(ipv4_address v4a);
 
 TOOLPEX_NAMESPACE_END
 
+extern template class ::std::shared_ptr<toolpex::ip_address>;
+
 #endif

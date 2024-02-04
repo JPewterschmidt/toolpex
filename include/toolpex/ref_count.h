@@ -31,6 +31,9 @@ public:
     {
         return m_count.load(order);
     }
+
+    auto operator ++(int) noexcept { return fetch_add(); }
+    auto operator --(int) noexcept { return fetch_sub(); }
     
 private:
     ::std::atomic_ptrdiff_t m_count;
