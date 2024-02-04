@@ -11,6 +11,8 @@
 #include <cassert>
 #include <netdb.h>
 
+template class ::std::shared_ptr<toolpex::ip_address>;
+
 TOOLPEX_NAMESPACE_BEG
 
 namespace ip_address_literals
