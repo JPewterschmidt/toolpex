@@ -91,13 +91,26 @@ make_v4(::std::string_view str)
     );
 }
 
+static consteval size_t ipv6str_maxlen() noexcept
+{
+    using namespace ::std::string_view_literals;
+    //                        1    2    3    4    5    6    7    8
+    constexpr auto example = "0000:0000:0000:0000:0000:0000:0000:0000"sv;
+    return example.size();
+}
+
 static 
 ip_address::ptr
 make_v6(::std::string_view str)
 {
     char buf[sizeof(::in6_addr)]{};
     errno = 0;
-    if (int s = ::inet_pton(AF_INET6, str.data(), &buf); s <= -1)
+    constexpr size_t strbufsize = ipv6str_maxlen() + 1;
+    if (str.size() > strbufsize)
+        throw ip_address_exception{ "make_v6: illegal ipv6str" }; 
+    char strbuf[strbufsize]{};
+    ::std::memcpy(strbuf, str.data(), str.size());
+    if (int s = ::inet_pton(AF_INET6, strbuf, &buf); s <= -1)
         throw ipv4_address{ errno };
 
     ::sockaddr_in6 temp{
