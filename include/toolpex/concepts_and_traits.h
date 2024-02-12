@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <chrono>
+#include <type_traits>
 
 #include "toolpex/macros.h"
 #include "toolpex/is_specialization_of.h"
@@ -102,6 +103,13 @@ struct get_return_type
 
 template <typename Callable>
 using get_return_type_t = typename get_return_type<Callable>::type;
+
+template <typename TimespecLike>
+concept timespec_like_concept = requires(TimespecLike ts)
+{
+    ts.tv_sec;
+    ts.tv_nsec;
+};
 
 TOOLPEX_NAMESPACE_END
 
