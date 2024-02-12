@@ -111,6 +111,13 @@ concept timespec_like_concept = requires(TimespecLike ts)
     ts.tv_nsec;
 };
 
+template <typename TimevalLike>
+concept timeval_like_concept = requires(TimevalLike tv)
+{
+    tv.tv_sec;
+    tv.tv_usec;
+};
+
 TOOLPEX_NAMESPACE_END
 
 #endif

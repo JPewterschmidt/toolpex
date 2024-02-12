@@ -51,4 +51,5 @@ TEST(concepts, get_return_type)
 TEST(concepts, timespec_like)
 {
     ASSERT_TRUE(timespec_like_concept<::timespec>);
+    ASSERT_TRUE(timeval_like_concept<::timeval>);
 }
