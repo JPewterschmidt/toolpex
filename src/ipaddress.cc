@@ -94,9 +94,8 @@ make_v4(::std::string_view str)
 static consteval size_t ipv6str_maxlen() noexcept
 {
     using namespace ::std::string_view_literals;
-    //                        1    2    3    4    5    6    7    8
-    constexpr auto example = "0000:0000:0000:0000:0000:0000:0000:0000"sv;
-    return example.size();
+    //      1    2    3    4    5    6    7    8
+    return "0000:0000:0000:0000:0000:0000:0000:0000"sv.size();
 }
 
 static 

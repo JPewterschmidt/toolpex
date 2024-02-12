@@ -13,13 +13,8 @@
 using namespace toolpex;
 using namespace ip_address_literals;
 
-void func()
-{
-    toolpex::not_implemented("shit gold");
-}
- 
 int main()
 {
-    auto ip1 = "::192.168.0.1"_ip;
-    ::std::cout << ip1;
+
+    return 0;
 }
