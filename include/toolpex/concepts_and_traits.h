@@ -4,6 +4,7 @@
 #include <functional>
 #include <chrono>
 #include <type_traits>
+#include <span>
 
 #include "toolpex/macros.h"
 #include "toolpex/is_specialization_of.h"
@@ -117,6 +118,9 @@ concept timeval_like_concept = requires(TimevalLike tv)
     tv.tv_sec;
     tv.tv_usec;
 };
+
+template <typename T>
+concept is_std_span = is_specialization_of<T, ::std::span>;
 
 TOOLPEX_NAMESPACE_END
 
