@@ -53,3 +53,20 @@ TEST(concepts, timespec_like)
     ASSERT_TRUE(timespec_like_concept<::timespec>);
     ASSERT_TRUE(timeval_like_concept<::timeval>);
 }
+
+TEST(concepts, span_like)
+{
+    ::std::span<int> dummyspan{};
+    ASSERT_TRUE(span_like<::std::span<int>>);
+    ASSERT_TRUE(span_like<decltype(dummyspan)>);
+}
+
+TEST(concepts, std_specification_predict)
+{
+    ASSERT_TRUE(is_std_chrono_duration<::std::chrono::milliseconds>);
+    ASSERT_FALSE(is_std_chrono_duration<::std::chrono::system_clock::time_point>);
+    ASSERT_TRUE(is_std_chrono_time_point<::std::chrono::system_clock::time_point>);
+    ASSERT_FALSE(is_std_chrono_time_point<::std::chrono::milliseconds>);
+    ASSERT_TRUE(is_std_chrono_duration_or_time_point<::std::chrono::milliseconds>);
+    ASSERT_TRUE(is_std_chrono_duration_or_time_point<::std::chrono::system_clock::time_point>);
+}

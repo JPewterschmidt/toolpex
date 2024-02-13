@@ -4,6 +4,8 @@
 #include <functional>
 #include <chrono>
 #include <type_traits>
+#include <concepts>
+#include <span>
 
 #include "toolpex/macros.h"
 #include "toolpex/is_specialization_of.h"
@@ -41,6 +43,9 @@ concept is_std_chrono_duration = toolpex::is_specialization_of<Duration, ::std::
 
 template<typename Timepoint>
 concept is_std_chrono_time_point = toolpex::is_specialization_of<Timepoint, ::std::chrono::time_point>;
+
+template<typename DuraOrPoint>
+concept is_std_chrono_duration_or_time_point = is_std_chrono_duration<DuraOrPoint> or is_std_chrono_time_point<DuraOrPoint>;
 
 template <typename Callable>
 struct get_return_type_helper
@@ -117,6 +122,16 @@ concept timeval_like_concept = requires(TimevalLike tv)
     tv.tv_sec;
     tv.tv_usec;
 };
+
+template <typename Span>
+concept span_like = requires (Span s)
+{
+    begin(s);
+    end(s);
+    s.size();
+    s.empty();
+    s.subspan(0);
+} && ::std::is_trivially_copyable_v<Span>;
 
 TOOLPEX_NAMESPACE_END
 
