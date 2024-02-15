@@ -1,10 +1,10 @@
-#include "toolpex/bits_manipulator.h"
+#include "toolpex/bit_mask.h"
 #include "gtest/gtest.h"
 #include <bitset>
 
 using namespace toolpex;
 
-TEST(bits_manipulator, basic)
+TEST(bit_mask, basic)
 {
     constexpr ::std::bitset<8> flags[]{
         ::std::bitset<8>{"00000001"}, 
@@ -13,7 +13,7 @@ TEST(bits_manipulator, basic)
         ::std::bitset<8>{"00001000"}
     };
 
-    bits_manipulator m{ 
+    bit_mask m{ 
         flags[0].to_ulong() |
         flags[1].to_ulong() |
         flags[2].to_ulong() | 
