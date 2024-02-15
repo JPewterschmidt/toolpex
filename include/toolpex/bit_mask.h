@@ -1,5 +1,5 @@
-#ifndef TOOLPEX_BITS_MANIPULATOR_H
-#define TOOLPEX_BITS_MANIPULATOR_H
+#ifndef TOOLPEX_BIT_MASK_H
+#define TOOLPEX_BIT_MASK_H
 
 #include <concepts>
 #include "toolpex/macros.h"
@@ -7,22 +7,22 @@
 TOOLPEX_NAMESPACE_BEG
 
 template<::std::integral RepT>
-class bits_manipulator
+class bit_mask
 {
 public:
-    constexpr bits_manipulator(RepT val) noexcept
+    constexpr bit_mask(RepT val) noexcept
         : m_rep{ val }
     {
     }
 
-    constexpr bits_manipulator& 
+    constexpr bit_mask& 
     add(::std::integral auto flag) noexcept
     {
         m_rep |= flag;
         return *this;
     }
 
-    constexpr bits_manipulator&
+    constexpr bit_mask& 
     remove(::std::integral auto flag) noexcept
     {
         m_rep &= ~flag;      
@@ -35,19 +35,19 @@ public:
     }
 
     template<::std::integral IntT>
-    constexpr bits_manipulator& add(const bits_manipulator<IntT>& other) noexcept
+    constexpr bit_mask& add(const bit_mask<IntT>& other) noexcept
     {
         return add(other.value());
     }
 
     template<::std::integral IntT>
-    constexpr bits_manipulator& remove(const bits_manipulator<IntT>& other) noexcept
+    constexpr bit_mask& remove(const bit_mask<IntT>& other) noexcept
     {
         return remove(other.value());
     }
 
     template<::std::integral IntT>
-    constexpr bool contains(const bits_manipulator<IntT>& other) const noexcept
+    constexpr bool contains(const bit_mask<IntT>& other) const noexcept
     {
         return contains(other.value());
     }

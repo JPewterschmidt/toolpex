@@ -10,7 +10,7 @@
 #include <cstring>
 #include "toolpex/ipaddress.h"
 #include <bitset>
-#include "toolpex/bits_manipulator.h"
+#include "toolpex/bit_mask.h"
 
 using namespace toolpex;
 using namespace ip_address_literals;
@@ -24,7 +24,7 @@ int main()
         ::std::bitset<8>{"00001000"}
     };
 
-    bits_manipulator m{ 
+    bit_mask m{ 
         flags[0].to_ulong() |
         flags[1].to_ulong() |
         flags[2].to_ulong() | 
