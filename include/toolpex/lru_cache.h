@@ -2,40 +2,103 @@
 #define TOOLPEX_LRU_CACHE_H
 
 #include "toolpex/macros.h"
-#include "toolpex/tuple_hash.h"
 #include <unordered_map>
 #include <concepts>
 #include <functional>
+#include <cstddef>
+#include <utility>
+#include <memory>
+#include <optional>
+#include <queue>
+#include <list>
 
 TOOLPEX_NAMESPACE_BEG
 
-template<unsigned Capacity, typename R, typename... Args>
+template<
+    typename KeyType, 
+    typename ValueType, 
+    typename Hash = ::std::hash<KeyType>, 
+    typename KeyEq = ::std::equal_to<KeyType>>
 class lru_cache
 {
 public:
-    using result_t = R;
-
-public:
-    lru_cache(::std::move_only_function<R(Args...)> func)
-        : m_f{ ::std::move(func) }
+    lru_cache(size_t capacity) 
+        : m_capacity{ capacity }
     {
+        if (capacity == 0)
+        {
+            throw std::invalid_argument("Capacity must be a positive integer.");
+        }
     }
 
-    auto operator()(Args... args)
+    std::optional<ValueType> get(const KeyType &key)
     {
-        ::std::tuple<Args...> argst{ ::std::move(args)... };
-        if (m_cache.contains(argst))
-            return m_cache[argst];
-        auto ret = ::std::apply(m_f, argst);
-        m_cache[argst] = ret;
-        return ret;
+        auto it = m_cache_map.find(key);
+        if (it != m_cache_map.end())
+        {
+            // Move the accessed item to the front of the list
+            m_cache_list.splice(m_cache_list.begin(), m_cache_list, it->second);
+            return it->second->second;
+        }
+        return {}; 
     }
-    
-    constexpr size_t capacity() const noexcept { return Capacity; }
+
+    template<std::convertible_to<KeyType>   K, 
+             std::convertible_to<ValueType> V>
+    void put(K&& key, V&& value)
+    {
+        auto it = m_cache_map.find(key);
+
+        if (it != m_cache_map.end())
+        {
+            // Update the value and move to the front
+            it->second->second = std::forward<V>(value);
+            m_cache_list.splice(m_cache_list.begin(), m_cache_list, it->second);
+        }
+        else
+        {
+            evict_if_needed();
+
+            // Insert the new item at the front
+            m_cache_list.emplace_front(std::forward<K>(key), std::forward<V>(value));
+            m_cache_map[m_cache_list.front().first] = m_cache_list.begin();
+        }
+    }
 
 private:
-    ::std::move_only_function<R(Args...)> m_f;
-    ::std::unordered_map<::std::tuple<Args...>, result_t, tuple_hash> m_cache; // TODO dummy
+    void evict_if_needed()
+    {
+        if (m_cache_map.size() > m_capacity)
+        {
+            if (m_cache_list.empty())
+            {
+                throw std::logic_error("Cache is empty, but eviction is attempted.");
+            }
+
+            KeyType last_key = m_cache_list.back().first;
+            m_cache_map.erase(last_key);
+            m_cache_list.pop_back();
+        }
+    }
+
+private:
+    using cache_list_type = std::list<std::pair<KeyType, ValueType>>;
+
+    using cache_map_iterator = typename std::unordered_map<
+        KeyType, 
+        typename cache_list_type::iterator, 
+        Hash, 
+        KeyEq>::iterator;
+
+    using cache_map_type = std::unordered_map<
+        KeyType, 
+        typename cache_list_type::iterator, 
+        Hash, 
+        KeyEq>;
+
+    size_t          m_capacity{};
+    cache_map_type  m_cache_map{};
+    cache_list_type m_cache_list{};
 };
 
 TOOLPEX_NAMESPACE_END
