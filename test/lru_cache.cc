@@ -1,24 +1,22 @@
 #include "gtest/gtest.h"
 #include "toolpex/lru_cache.h"
 
-namespace
+using namespace toolpex;
+
+TEST(lru_cache_test, basic_functionality)
 {
-    size_t evaluate_cnt{};
+    lru_cache<int, int> cache(2);
+
+    cache.put(1, 10);
+    cache.put(2, 20);
+
+    EXPECT_EQ(cache.get(1).value(), 10);
+    EXPECT_EQ(cache.get(2).value(), 20);
+
+    cache.put(3, 30);
+
+    EXPECT_FALSE(cache.get(1).has_value());
+
+    EXPECT_EQ(cache.get(2).value(), 20);
+    EXPECT_EQ(cache.get(3).value(), 30);
 }
-
-int func(int i, unsigned b, double d)
-{
-    ++evaluate_cnt;
-    return static_cast<int>(i + b + d);
-}
-
-TEST(lru_cache, basic)
-{
-    toolpex::lru_cache<100, int, int, unsigned, double> f{ func };
-
-    ASSERT_EQ(f(1, 2, 1.0), 4);
-    ASSERT_EQ(f(1, 2, 1.0), 4);
-    ASSERT_EQ(f(2, 2, 1.0), 5);
-    ASSERT_EQ(evaluate_cnt, 2);
-}
-
