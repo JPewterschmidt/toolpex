@@ -11,6 +11,7 @@
 #include <optional>
 #include <queue>
 #include <list>
+#include <cassert>
 
 TOOLPEX_NAMESPACE_BEG
 
@@ -31,7 +32,7 @@ public:
         }
     }
 
-    std::optional<ValueType> get(const KeyType &key)
+    std::optional<ValueType> get(const KeyType &key) noexcept
     {
         auto it = m_cache_map.find(key);
         if (it != m_cache_map.end())
@@ -66,19 +67,14 @@ public:
     }
 
 private:
-    void evict_if_needed()
+    void evict_if_needed() 
     {
-        if (m_cache_map.size() > m_capacity)
-        {
-            if (m_cache_list.empty())
-            {
-                throw std::logic_error("Cache is empty, but eviction is attempted.");
-            }
+        if (m_cache_map.size() < m_capacity) return;
+        assert(!m_cache_list.empty());
 
-            KeyType last_key = m_cache_list.back().first;
-            m_cache_map.erase(last_key);
-            m_cache_list.pop_back();
-        }
+        KeyType last_key = m_cache_list.back().first;
+        m_cache_map.erase(last_key);
+        m_cache_list.pop_back();
     }
 
 private:
