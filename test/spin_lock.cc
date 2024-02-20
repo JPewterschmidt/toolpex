@@ -12,7 +12,7 @@ namespace
     
     void increaser()
     {
-        for (size_t i{}; i < 10000; ++i)
+        for (size_t i{}; i < 100000; ++i)
         {
             ::std::lock_guard lk{ g_lock };
             g_value += 2;
@@ -21,7 +21,7 @@ namespace
 
     void decreaser()
     {
-        for (size_t i{}; i < 10000; ++i)
+        for (size_t i{}; i < 99999; ++i)
         {
             ::std::lock_guard lk{ g_lock };
             g_value -= 2;
@@ -35,7 +35,7 @@ TEST(spin_lock, basic)
         ::std::jthread t1{ increaser };
         ::std::jthread t2{ decreaser };
     }
-    ASSERT_EQ(g_value, 0);
+    ASSERT_EQ(g_value, 2);
 }
 
 TEST(spin_lock, observer)

@@ -1,3 +1,7 @@
+// This idea coms from **perfbook** Chapter 5, 
+// code simply copyed from perfbook example.
+// https://github.com/paulmckrcu/perfbook
+
 #ifndef TOOLPEX_COUNTER_H
 #define TOOLPEX_COUNTER_H
 
@@ -9,11 +13,15 @@
 
 TOOLPEX_NAMESPACE_BEG
 
-template<typename ExecutionId, typename Counter>
+/*! \brief  RAII per thread or coroutine counter handler.
+ *  Objects of this type will do some clearning up after it's lifetime.
+ *  And forward counter operation to the underlying counter object.
+ */
+template<typename ExecutionIdType, typename Counter>
 class specific_counter_handler
 {
 public:
-    specific_counter_handler(ExecutionId id, Counter& cnt) noexcept
+    specific_counter_handler(ExecutionIdType id, Counter& cnt) noexcept
         : m_parent{ &cnt }, 
           m_tid{ ::std::move(id) }
     {
@@ -39,6 +47,10 @@ public:
         m_parent->count_unregister_thread(m_tid);
     }
 
+    /*! \return The execution unit indicator 
+     *          (a thread id, or pointer to a coroutine frame, 
+     *           or other stuff could represent a execution unit)
+     */
     auto tid() const noexcept { return m_tid; }
 
     decltype(auto) add_count(::std::integral auto delta) noexcept
@@ -58,14 +70,14 @@ public:
 
 private:
     Counter* m_parent{};
-    ExecutionId m_tid;
+    ExecutionIdType m_tid;
 };
 
-template<typename ExecutionId = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
+template<typename ExecutionIdType = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
 class approximate_limit_counter
 {
 public:
-    using execution_unit_handler = specific_counter_handler<ExecutionId, approximate_limit_counter>;
+    using execution_unit_handler = specific_counter_handler<ExecutionIdType, approximate_limit_counter>;
     
 public:
     constexpr approximate_limit_counter(CounterT global_counter_max) noexcept
@@ -157,7 +169,9 @@ private:
     void balance_count(const execution_unit_handler& h) noexcept
     {
         auto& [cntmax, cnt] = local_variable(h);
-        const CounterT cntmax_val =  (m_global_counter_max - m_global_counter - m_global_counter_reserve) / num_online_execution_unit();
+        const CounterT cntmax_val = 
+            (m_global_counter_max - m_global_counter - m_global_counter_reserve) / num_online_execution_unit();
+
         m_global_counter_reserve += cntmax_val;
         const CounterT cnt_val = cntmax_val / 2;
         cnt.store(cnt_val, ::std::memory_order_relaxed);
