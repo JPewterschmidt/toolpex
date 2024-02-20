@@ -9,6 +9,8 @@ TOOLPEX_NAMESPACE_BEG
 class spin_lock
 {
 public:
+    constexpr spin_lock() noexcept = default;
+
     inline void lock() noexcept
     {
         while (try_lock()) { }
@@ -22,6 +24,11 @@ public:
     inline void unlock() noexcept
     {
         return m_flag.clear(::std::memory_order_release);
+    }
+
+    bool is_locked() const noexcept
+    {
+        return m_flag.test();
     }
 
 private:
