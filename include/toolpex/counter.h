@@ -7,71 +7,12 @@
 
 #include "toolpex/macros.h"
 #include "toolpex/spin_lock.h"
+#include "toolpex/specific_counter_handler.h"
 #include <unordered_map>
 #include <ranges>
 #include <numeric>
 
 TOOLPEX_NAMESPACE_BEG
-
-/*! \brief  RAII per thread or coroutine counter handler.
- *  Objects of this type will do some clearning up after it's lifetime.
- *  And forward counter operation to the underlying counter object.
- */
-template<typename ExecutionIdType, typename Counter>
-class specific_counter_handler
-{
-public:
-    specific_counter_handler(ExecutionIdType id, Counter& cnt) noexcept
-        : m_parent{ &cnt }, 
-          m_tid{ ::std::move(id) }
-    {
-    }
-
-    specific_counter_handler(specific_counter_handler&& other) noexcept
-        : m_parent{ ::std::exchange(other.m_parent, nullptr) }, 
-          m_tid{ ::std::move(other.m_tid) }
-    {
-    }
-
-    specific_counter_handler& 
-    operator=(specific_counter_handler&& other) noexcept
-    {
-        m_parent = ::std::exchange(other.m_parent, nullptr);
-        m_tid = other.m_tid;
-        return *this;
-    }
-
-    ~specific_counter_handler() noexcept
-    {
-        if (!m_parent) return;
-        m_parent->count_unregister_thread(m_tid);
-    }
-
-    /*! \return The execution unit indicator 
-     *          (a thread id, or pointer to a coroutine frame, 
-     *           or other stuff could represent a execution unit)
-     */
-    auto tid() const noexcept { return m_tid; }
-
-    decltype(auto) add_count(::std::integral auto delta) noexcept
-    {
-        return m_parent->add_count(*this, delta);
-    }
-
-    decltype(auto) sub_count(::std::integral auto delta) noexcept
-    {
-        return m_parent->sub_count(*this, delta);
-    }
-
-    decltype(auto) read_count() noexcept
-    {
-        return m_parent->read_count(*this);
-    }
-
-private:
-    Counter* m_parent{};
-    ExecutionIdType m_tid;
-};
 
 template<typename ExecutionIdType = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
 class approximate_limit_counter
@@ -89,6 +30,20 @@ public:
     get_specific_handler(auto execution_specific_initer) noexcept 
     { 
         return { ::std::move(execution_specific_initer), *this }; 
+    }
+
+    void reset(CounterT global_counter_max) noexcept
+    {
+        ::std::lock_guard lk{ m_lock };
+        m_global_counter_max = global_counter_max;
+        m_global_counter_reserve = {};
+        m_global_counter = {};
+        m_counter.clear();
+    }
+
+    void reset() noexcept
+    {
+        return reset(m_global_counter_max);
     }
 
     bool add_count(const execution_unit_handler& h, CounterT delta) noexcept
@@ -146,6 +101,8 @@ public:
         globalize_count(tid);
         m_counter.erase(tid);       
     }
+
+    CounterT limit() const noexcept { return m_global_counter_max; }
 
 private:
     struct local_variable_t
