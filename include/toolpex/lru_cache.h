@@ -66,8 +66,11 @@ public:
         }
     }
 
+    size_t capacity() const noexcept { return m_capacity; }
+    size_t size()     const noexcept { return m_cache_map.size(); }
+
 private:
-    void evict_if_needed() 
+    void evict_if_needed() noexcept
     {
         if (m_cache_map.size() < m_capacity) return;
         assert(!m_cache_list.empty());
