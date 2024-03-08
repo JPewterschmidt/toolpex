@@ -1,71 +1,24 @@
+// This idea coms from **perfbook** Chapter 5, 
+// code simply copyed from perfbook example.
+// https://github.com/paulmckrcu/perfbook
+
 #ifndef TOOLPEX_COUNTER_H
 #define TOOLPEX_COUNTER_H
 
 #include "toolpex/macros.h"
 #include "toolpex/spin_lock.h"
+#include "toolpex/specific_counter_handler.h"
 #include <unordered_map>
 #include <ranges>
 #include <numeric>
 
 TOOLPEX_NAMESPACE_BEG
 
-template<typename ExecutionId, typename Counter>
-class specific_counter_handler
-{
-public:
-    specific_counter_handler(ExecutionId id, Counter& cnt) noexcept
-        : m_parent{ &cnt }, 
-          m_tid{ ::std::move(id) }
-    {
-    }
-
-    specific_counter_handler(specific_counter_handler&& other) noexcept
-        : m_parent{ ::std::exchange(other.m_parent, nullptr) }, 
-          m_tid{ ::std::move(other.m_tid) }
-    {
-    }
-
-    specific_counter_handler& 
-    operator=(specific_counter_handler&& other) noexcept
-    {
-        m_parent = ::std::exchange(other.m_parent, nullptr);
-        m_tid = other.m_tid;
-        return *this;
-    }
-
-    ~specific_counter_handler() noexcept
-    {
-        if (!m_parent) return;
-        m_parent->count_unregister_thread(m_tid);
-    }
-
-    auto tid() const noexcept { return m_tid; }
-
-    decltype(auto) add_count(::std::integral auto delta) noexcept
-    {
-        return m_parent->add_count(*this, delta);
-    }
-
-    decltype(auto) sub_count(::std::integral auto delta) noexcept
-    {
-        return m_parent->sub_count(*this, delta);
-    }
-
-    decltype(auto) read_count() noexcept
-    {
-        return m_parent->read_count(*this);
-    }
-
-private:
-    Counter* m_parent{};
-    ExecutionId m_tid;
-};
-
-template<typename ExecutionId = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
+template<typename ExecutionIdType = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
 class approximate_limit_counter
 {
 public:
-    using execution_unit_handler = specific_counter_handler<ExecutionId, approximate_limit_counter>;
+    using execution_unit_handler = specific_counter_handler<ExecutionIdType, approximate_limit_counter>;
     
 public:
     constexpr approximate_limit_counter(CounterT global_counter_max) noexcept
@@ -77,6 +30,20 @@ public:
     get_specific_handler(auto execution_specific_initer) noexcept 
     { 
         return { ::std::move(execution_specific_initer), *this }; 
+    }
+
+    void reset(CounterT global_counter_max) noexcept
+    {
+        ::std::lock_guard lk{ m_lock };
+        m_global_counter_max = global_counter_max;
+        m_global_counter_reserve = {};
+        m_global_counter = {};
+        m_counter.clear();
+    }
+
+    void reset() noexcept
+    {
+        return reset(m_global_counter_max);
     }
 
     bool add_count(const execution_unit_handler& h, CounterT delta) noexcept
@@ -135,6 +102,8 @@ public:
         m_counter.erase(tid);       
     }
 
+    CounterT limit() const noexcept { return m_global_counter_max; }
+
 private:
     struct local_variable_t
     {
@@ -157,7 +126,9 @@ private:
     void balance_count(const execution_unit_handler& h) noexcept
     {
         auto& [cntmax, cnt] = local_variable(h);
-        const CounterT cntmax_val =  (m_global_counter_max - m_global_counter - m_global_counter_reserve) / num_online_execution_unit();
+        const CounterT cntmax_val = 
+            (m_global_counter_max - m_global_counter - m_global_counter_reserve) / num_online_execution_unit();
+
         m_global_counter_reserve += cntmax_val;
         const CounterT cnt_val = cntmax_val / 2;
         cnt.store(cnt_val, ::std::memory_order_relaxed);

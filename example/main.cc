@@ -12,12 +12,16 @@
 #include <bitset>
 #include "toolpex/bit_mask.h"
 #include "toolpex/lru_cache.h"
+#include "toolpex/functional.h"
 
 using namespace toolpex;
 using namespace ip_address_literals;
+using namespace ::std::string_literals;
+using namespace ::std::string_view_literals;
 
 int main()
 {
-
+    ::std::string temp = lazy_string_concater{} + "xxx"s + "aaaaaa"sv + "bbb";
+    ::std::cout << temp << ::std::endl;
     return 0;
 }
