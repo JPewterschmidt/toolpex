@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <concepts>
 #include <span>
+#include <string>
+#include <string_view>
 
 #include "toolpex/macros.h"
 #include "toolpex/is_specialization_of.h"
@@ -132,6 +134,18 @@ concept span_like = requires (Span s)
     s.empty();
     s.subspan(0);
 } && ::std::is_trivially_copyable_v<Span>;
+
+template<typename StringLike>
+concept string_like = requires (StringLike str)
+{
+    { ::std::char_traits<decltype(&str[0])>{} } -> is_specialization_of<::std::char_traits>;
+} && ::std::ranges::range<StringLike>;
+
+template<typename ToStringAble>
+concept to_string_able = requires(ToStringAble o)
+{
+    { o.to_string() } -> string_like;
+};
 
 TOOLPEX_NAMESPACE_END
 

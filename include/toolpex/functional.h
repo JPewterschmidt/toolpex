@@ -2,6 +2,7 @@
 #define TOOLPEX_FUNCTIONAL_H
 
 #include "toolpex/macros.h"
+#include "toolpex/concepts_and_traits.h"
 #include <functional>
 #include <ranges>
 #include <tuple>
@@ -46,6 +47,12 @@ public:
     auto operator + (::std::string_view other) &&
     {
         auto t = ::std::tuple_cat(::std::move(m_strs), ::std::tuple(other));
+        return lazy_string_concater<::std::remove_reference_t<decltype(t)>>{ ::std::move(t) };
+    }
+
+    auto operator + (to_string_able auto const& other) &&
+    {
+        auto t = ::std::tuple_cat(::std::move(m_strs), ::std::tuple(other.to_string()));
         return lazy_string_concater<::std::remove_reference_t<decltype(t)>>{ ::std::move(t) };
     }
 
