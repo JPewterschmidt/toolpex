@@ -147,6 +147,12 @@ concept to_string_able = requires(ToStringAble o)
     { o.to_string() } -> string_like;
 };
 
+template<typename ToStringAble>
+concept std_to_string_able = requires(ToStringAble o)
+{
+    ::std::to_string(o);
+};
+
 TOOLPEX_NAMESPACE_END
 
 #endif
