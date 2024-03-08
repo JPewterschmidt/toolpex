@@ -56,6 +56,12 @@ public:
         return lazy_string_concater<::std::remove_reference_t<decltype(t)>>{ ::std::move(t) };
     }
 
+    auto operator + (std_to_string_able auto other) &&
+    {
+        auto t = ::std::tuple_cat(::std::move(m_strs), ::std::tuple(::std::to_string(other)));
+        return lazy_string_concater<::std::remove_reference_t<decltype(t)>>{ ::std::move(t) };
+    }
+
 private:
     StrTuple m_strs{::std::string_view{}};
 };
