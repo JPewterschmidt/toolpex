@@ -56,7 +56,15 @@ public:
         return lazy_string_concater<::std::remove_reference_t<decltype(t)>>{ ::std::move(t) };
     }
 
-    auto operator + (std_to_string_able auto other) &&
+    template<typename Funda>
+    requires (::std::is_fundamental_v<Funda>)
+    auto operator + (Funda other) &&
+    {
+        return for_std_to_string(other);
+    }
+
+private:
+    auto for_std_to_string(auto other)
     {
         auto t = ::std::tuple_cat(::std::move(m_strs), ::std::tuple(::std::to_string(other)));
         return lazy_string_concater<::std::remove_reference_t<decltype(t)>>{ ::std::move(t) };

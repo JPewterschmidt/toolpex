@@ -14,5 +14,6 @@ TEST(lazy_string_concater, basic)
 {
     ASSERT_EQ(::std::string(lazy_string_concater{} + "xxx"s + "aaaaaa"sv + "bbb"), "xxxaaaaaabbb"sv);
     ASSERT_EQ(::std::string(lazy_string_concater{} + foo1{} + "abc"), "foo1abc"sv);
-    ASSERT_EQ(::std::string(lazy_string_concater{} + 12 + "ab"), "12ab"sv);
+    ASSERT_EQ(::std::string(lazy_string_concater{} + size_t{12} + "ab"), "12ab"sv);
+    ASSERT_EQ(::std::string(lazy_string_concater{} + int{12} + "ab"), "12ab"sv);
 }
