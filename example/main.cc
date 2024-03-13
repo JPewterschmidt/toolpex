@@ -13,6 +13,7 @@
 #include "toolpex/bit_mask.h"
 #include "toolpex/lru_cache.h"
 #include "toolpex/functional.h"
+#include "toolpex/in_there.h"
 
 using namespace toolpex;
 using namespace ip_address_literals;
@@ -21,7 +22,7 @@ using namespace ::std::string_view_literals;
 
 int main()
 {
-    ::std::string temp = lazy_string_concater{} + "xxx"s + "aaaaaa"sv + "bbb";
-    ::std::cout << temp << ::std::endl;
+    ::std::cout << bool(in_there{ "123"sv, "123"s }) << ::std::endl;
+
     return 0;
 }
