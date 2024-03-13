@@ -20,4 +20,6 @@ TEST(in_there, basic)
     ASSERT_TRUE(bool(in_there{ "123"sv, "123"s, "345", "456"sv }));
     ASSERT_TRUE(bool(in_there{ 123, 123, 34, 45, 56 }));
     ASSERT_FALSE(bool(in_there{ 123, 34, 45, 56 }));
+    ASSERT_FALSE(bool(in_there{}));
+    ASSERT_FALSE(bool(in_there{1}));
 }
