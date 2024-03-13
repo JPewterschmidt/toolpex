@@ -11,12 +11,12 @@ public:
     constexpr in_there(const auto&&) noexcept {}
 
     template<typename Arg1, typename... Args>
-    in_there(Arg1&& arg1, Args&&... rests)
+    constexpr in_there(Arg1&& arg1, Args&&... rests)
     {
         ((m_result |= (::std::forward<Arg1>(arg1) == ::std::forward<Args>(rests))), ...);
     }
 
-    operator bool () const noexcept { return m_result; }
+    constexpr operator bool () const noexcept { return m_result; }
 
 private:
     bool m_result{};
