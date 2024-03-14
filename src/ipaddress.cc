@@ -1,6 +1,6 @@
 #include "toolpex/ipaddress.h"
 #include "toolpex/exceptions.h"
-#include "fmt/core.h"
+#include <format>
 #include <sstream>
 #include <arpa/inet.h>
 #include <bit>
@@ -238,8 +238,8 @@ ipv6_address::ipv6_address(::std::span<uint16_t> vals)
 
 ::std::string ipv4_address::to_string() const
 {
-    return fmt::format("{}.{}.{}.{}", 
-            ia_data[0], ia_data[1], ia_data[2], ia_data[3]);
+    return std::format("{}.{}.{}.{}", 
+                       ia_data[0], ia_data[1], ia_data[2], ia_data[3]);
 }
 
 uint32_t ipv4_address::to_uint32() const noexcept
