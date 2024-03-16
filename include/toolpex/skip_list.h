@@ -5,6 +5,7 @@
 #include <memory>
 #include <utility>
 #include <iterator>
+#include <random>
 
 namespace toolpex
 {
@@ -37,7 +38,13 @@ private:
 
         node* operator[](::std::size_t idx) noexcept { return m_forward_ptrs[idx]; }
         const node* operator[](::std::size_t idx) const noexcept { return m_forward_ptrs[idx]; }
-        const key_type& key() const noexcept { return value().first; }
+
+        const key_type* key_ptr() const noexcept 
+        { 
+            if (m_storage == nullptr) return {};
+            return &(value().first);
+        }
+
         reference value() noexcept { return *m_storage; }
         const_reference value() const noexcept { return *m_storage; }
 
@@ -46,11 +53,23 @@ private:
         ::std::unique_ptr<value_type, decltype(demake_value)> m_storage{};
     };
 
-    node* make_node()
+    template<typename KVPair>
+    node* make_node(KVPair&& kvp)
     {
+        // TODO: Should I receive a level argument and do soemthing init stuff about the level ? 
         node* result = ::std::allocator_traits<allocator_traits>::rebind_alloc<node>::allocate(m_alloc, 1);
         new (result) node{};
-        result->m_storage = kv_stuff;
+        result->m_storage = make_value(::std::forward<KVPair>(kvp));
+        return result;
+    }
+
+    template<typename KKey, typename VValue>
+    node* make_node(KKey k, VValue v)
+    {
+        return make_node(::std::pair<key_type, value_type>{
+            ::std::forward<KKey>(k), 
+            ::std::forward<VValue>(v)
+        });
     }
 
     void demake_node(node* n)
@@ -68,8 +87,18 @@ private:
     ::std::unique_ptr<value_type, decltype(demake_value)> 
     make_value(KeyT&& k, Args&&... args_for_mapped)
     {
+        return make_value(::std::pair<key_type, value_type>{
+            ::std::forward<KeyT>(t), 
+            value_type(::std::forward<Args>(args_for_mapped)...)
+        });
+    }
+
+    template<typename KVPair>
+    ::std::unique_ptr<value_type, decltype(demake_value)> 
+    make_value(KVPair&& kvp)
+    {
         pointer result = ::std::allocator_traits<allocator_type>::allocate(m_alloc, 1);
-        new (result) value_type(::std::forward<KeyT>(k), ::std::forward<Args>(args_for_mapped)...);
+        new (result) value_type(::std::forward<KVPair>(kvp));
         return result;
     }
 
@@ -126,6 +155,7 @@ public:
 
     skip_list() noexcept
     {
+        // TODO: Rewrite this part. Read the paper.
         auto& h = *m_head;
         for (size_t i{}; i < max_level(); ++i)
             h[i] = m_end_sentinel.get();
@@ -138,16 +168,53 @@ public:
 
     iterator find(const key_type& k)
     {
-        auto* x = left_nearest(k);
-        if (x->key() == k) return { x };
-        return {m_end_sentinel.get()};
+        auto* x = next(left_nearest(k));
+        if (x == end_node_ptr() || *(x->key_ptr()) != k) return { end_node_ptr() };
+        return { x };
     }
 
     template<template... Args>
-    iterator emplace(iterator iter, value_type kv)
+    iterator emplace(value_type kv)
     {
-        ::std::array<node*, max_level()> updates{};
-        // TODO
+        ::std::array<node*, max_level()> update{};
+        node* x = next(left_nearest(kv.first, update));
+        if (const auto* kp = x->key_ptr(); kp && *kp == k.first) 
+        {
+            x->value() = ::std::move(kv.second);
+            return {x};
+        }
+        const size_t new_level = random_level();
+        if (new_level > level())
+        {
+            for (size_t i = level(); i < new_level; ++i)
+                update[i] = head_node_ptr();
+            m_level = new_level;
+        }
+        node* newnode = make_node(::std::move(kv));
+        for (size_t i{}; i < new_level; ++i)
+        {
+            (*newnode)[i] = ::std::exchange((*update[i])[i], newnode);
+        }
+        ++ m_size;
+        return { newnode };
+    }
+
+    void erase(const key_type& key)
+    {
+        ::std::array<node*, max_level()> update{};
+        node* x = next(left_nearest(key, update));
+        if (const auto* keyp = x->key_ptr(); keyp && *keyp == key)
+        {
+            for (size_t i{}; i < level(); ++i)
+            {
+                if ((*update[i])[i] != x) break;
+                (*update[i])[i] = (*x)[i];
+            }
+            demake_node(x);
+            while (level() >= 1 && (*head_node_ptr())[level()-1] == end_node_ptr())
+                -- m_level;
+            -- m_size;
+        }
     }
 
 private:
@@ -158,10 +225,39 @@ private:
         {
             auto& xref = *x;
             node* x_forward = xref[l];
-            while (x_forward->key() < k)
+            while (auto* valp = x_forward->key(); valp && *valp < k)
                 x = x_forward;
         }
         return x;
+    }
+
+    node* left_nearest(const key_type& k, ::std::array<node*, max_level()>& update)
+    {
+        node* x = m_head.get();
+        for (size_t l = max_level() - 1; l >= 0; --l)
+        {
+            auto& xref = *x;
+            node* x_forward = xref[l];
+            while (auto* valp = x_forward->key(); valp && *valp < k)
+                x = x_forward;
+            update[l] = x;
+        }
+        return x;
+    }
+
+    static node* next(node* n) noexcept
+    {
+        return (*n)[0];
+    }
+
+    const node* end_node_ptr() const noexcept { return m_end_sentinel.get(); }
+    const node* head_node_ptr() const noexcept { return m_head.get(); }
+    node* head_node_ptr() noexcept { return m_head.get(); }
+
+    size_t random_level() const noexcept
+    {
+        ::std::uniform_int_distrbution<size_t> dist(1, max_level());
+        return dist(m_rng);
     }
     
 private:
@@ -169,6 +265,8 @@ private:
     ::std::unique_ptr<node> m_head{};
     allocator m_alloc;
     size_t m_size{};
+    size_t m_level{}
+    mutable ::std::mt19937 m_rng{::std::random_device{}};
 };
 
 } // namespace toolpex
