@@ -3,11 +3,14 @@
 
 #include <memory>
 #include <functional>
+#include <type_traits>
+#include <utility>
 
 namespace toolpex
 {
     
 template<typename T>
+requires (::std::is_nothrow_move_constructible_v<T>)
 class after_value_set
 {
 public:
@@ -16,17 +19,17 @@ public:
     using reference = T&;
 
 public:
-    after_value_set(::std::move_only_function<void(reference)> callback)
+    after_value_set(::std::move_only_function<void(value_type)> callback)
         : m_storage{ new char[sizeof(value_type)] }, 
           m_cb{ ::std::move(callback) }
     {
     }
 
     template<typename... Args>
-    set_value(Args&&... args)
+    void set_value(Args&&... args)
     {
         new(storage()) value_type(::std::forward<Args>(args)...);
-        m_cb(object());
+        if (m_cb) ::std::exchange(m_cb, nullptr)(::std::move(object()));
     }
 
     after_value_set(after_value_set&& other) noexcept = default;
@@ -44,9 +47,8 @@ private:
 
 private:
     ::std::unique_ptr<char[]> m_storage;
-    ::std::move_only_function<void(reference)> m_cb;
+    ::std::move_only_function<void(value_type)> m_cb;
 };
-
 
 } // namespace toolpex
 
