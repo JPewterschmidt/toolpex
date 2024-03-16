@@ -12,7 +12,7 @@ namespace toolpex
 
 template<typename Key, typename Mapped, 
          ::std::size_t MaxLevel, 
-         typename Alloc = ::std::allocator<::std::pair<Key, Napped>>>
+         typename Alloc = ::std::allocator<::std::pair<Key, Mapped>>>
 class skip_list
 {
 public:
@@ -28,36 +28,54 @@ public:
     using pointer                   = value_type*;
     using allocator_type            = Alloc;
 
+    constexpr static ::std::size_t max_level() noexcept { return MaxLevel; }
     static_assert(max_level() > 0, "The constant MaxLevel must be greater than 0!");
 
 private:
+    class value_deleter
+    {
+    public:
+        value_deleter(skip_list* list) noexcept
+            : m_list{ list }
+        {
+        }
+
+        void operator()(pointer n) 
+        {
+            m_list->demake_value(n);
+        }
+
+    private:
+        skip_list* m_list{};
+    };
+
     class node
     {
     public:
-        node(::std::unique_ptr<value_type, decltype(demake_value)> s) noexcept : m_storage{ ::std::move(s) } {}
+        node(::std::unique_ptr<value_type, value_deleter> s) noexcept : m_valp{ ::std::move(s) } {}
 
         node* operator[](::std::size_t idx) noexcept { return m_forward_ptrs[idx]; }
         const node* operator[](::std::size_t idx) const noexcept { return m_forward_ptrs[idx]; }
 
         const key_type* key_ptr() const noexcept 
         { 
-            if (m_storage == nullptr) return {};
+            if (m_valp == nullptr) return {};
             return &(value().first);
         }
 
-        reference value() noexcept { return *m_storage; }
-        const_reference value() const noexcept { return *m_storage; }
+        reference value() noexcept { return *m_valp; }
+        const_reference value() const noexcept { return *m_valp; }
 
     private:
         ::std::array<node*, max_level()> m_forward_ptrs{};
-        ::std::unique_ptr<value_type, decltype(demake_value)> m_storage{};
+        ::std::unique_ptr<value_type, value_deleter> m_valp{};
     };
 
     template<typename KVPair>
     node* make_node(KVPair&& kvp)
     {
         // TODO: Should I receive a level argument and do soemthing init stuff about the level ? 
-        node* result = ::std::allocator_traits<allocator_traits>::rebind_alloc<node>::allocate(m_alloc, 1);
+        node* result = ::std::allocator_traits<allocator_type>::template rebind_alloc<node>::allocate(allocator(), 1);
         new (result) node{};
         result->m_storage = make_value(::std::forward<KVPair>(kvp));
         return result;
@@ -75,31 +93,26 @@ private:
     void demake_node(node* n)
     {
         n->~node();
-        ::std::allocator_traits<allocator_traits>::rebind_alloc<node>::deallocate(m_alloc, n, 1);
-    }
-
-    void demake_node(iterator iter)
-    {
-        demake_node(iter.operator ->());
+        ::std::allocator_traits<allocator_type>::template rebind_alloc<node>::deallocate(m_alloc, n, 1);
     }
 
     template<typename KeyT, typename... Args>
-    ::std::unique_ptr<value_type, decltype(demake_value)> 
+    ::std::unique_ptr<value_type, value_deleter> 
     make_value(KeyT&& k, Args&&... args_for_mapped)
     {
         return make_value(::std::pair<key_type, value_type>{
-            ::std::forward<KeyT>(t), 
+            ::std::forward<KeyT>(k), 
             value_type(::std::forward<Args>(args_for_mapped)...)
         });
     }
 
     template<typename KVPair>
-    ::std::unique_ptr<value_type, decltype(demake_value)> 
+    ::std::unique_ptr<value_type, value_deleter> 
     make_value(KVPair&& kvp)
     {
         pointer result = ::std::allocator_traits<allocator_type>::allocate(m_alloc, 1);
         new (result) value_type(::std::forward<KVPair>(kvp));
-        return result;
+        return { result, value_deleter{this} };
     }
 
     void demake_value(pointer p)
@@ -139,8 +152,22 @@ public:
         node* m_ptr{};
     };
 
+private:
+    void demake_node(iterator iter)
+    {
+        demake_node(iter.operator ->());
+    }
+
 public:
-    constexpr static ::std::size_t max_level() noexcept { return MaxLevel; }
+    iterator begin() noexcept
+    {
+        return { next(head_node_ptr()) };
+    }
+
+    iterator end() noexcept
+    {
+        return { end_node_ptr() };
+    }
 
     ~skip_list() noexcept
     {
@@ -164,7 +191,9 @@ public:
     skip_list(skip_list&& other) noexcept = default;
     skip_list& operator=(skip_list&& other) noexcept = default;
     size_t size() const noexcept { return m_size; }
+    size_t level() const noexcept { return m_level; }
     bool empty() const noexcept { return size() == 0; }
+    auto& allocator() noexcept { return m_alloc; }
 
     iterator find(const key_type& k)
     {
@@ -173,12 +202,12 @@ public:
         return { x };
     }
 
-    template<template... Args>
+    template<typename... Args>
     iterator emplace(value_type kv)
     {
         ::std::array<node*, max_level()> update{};
         node* x = next(left_nearest(kv.first, update));
-        if (const auto* kp = x->key_ptr(); kp && *kp == k.first) 
+        if (const auto* kp = x->key_ptr(); kp && *kp == kv.first) 
         {
             x->value() = ::std::move(kv.second);
             return {x};
@@ -225,7 +254,8 @@ private:
         {
             auto& xref = *x;
             node* x_forward = xref[l];
-            while (auto* valp = x_forward->key(); valp && *valp < k)
+            auto* valp = x_forward->key_ptr(); 
+            while (valp && *valp < k)
                 x = x_forward;
         }
         return x;
@@ -238,7 +268,8 @@ private:
         {
             auto& xref = *x;
             node* x_forward = xref[l];
-            while (auto* valp = x_forward->key(); valp && *valp < k)
+            auto* valp = x_forward->key(); 
+            while (valp && *valp < k)
                 x = x_forward;
             update[l] = x;
         }
@@ -256,16 +287,16 @@ private:
 
     size_t random_level() const noexcept
     {
-        ::std::uniform_int_distrbution<size_t> dist(1, max_level());
+        ::std::uniform_int_distribution<size_t> dist(1, max_level());
         return dist(m_rng);
     }
     
 private:
     ::std::unique_ptr<node> m_end_sentinel{};
     ::std::unique_ptr<node> m_head{};
-    allocator m_alloc;
+    allocator_type m_alloc;
     size_t m_size{};
-    size_t m_level{}
+    size_t m_level{};
     mutable ::std::mt19937 m_rng{::std::random_device{}};
 };
 
