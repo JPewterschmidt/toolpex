@@ -31,17 +31,13 @@ void print(::std::ranges::range auto& r)
 
 int main()
 {
-    skip_list<int, int, 16> il{};
-    ::std::cout << skip_list_debug{ il }.actual_size() << ::std::endl;
+    skip_list<int, int, 5> s{};
 
     for (int i : ::std::ranges::iota_view{0, 1000})
-    {
-        il.insert(i, i + 1);
-        ::std::cout << skip_list_debug{ il }.actual_size() << ::std::endl;
-    }
-    ::std::cout << ::std::endl;
+        s.insert(i, i + 1);
 
-    print(il);
+    auto s2 = ::std::move(s);
+
 
     return 0;
 }

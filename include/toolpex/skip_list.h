@@ -194,33 +194,58 @@ public:
         return { end_node_ptr() };
     }
 
-    ~skip_list() noexcept
+    ~skip_list() noexcept { clear(); }
+
+    void clear() noexcept
     {
-        node* cur = next(head_node_ptr());
+        node* cur = head_node_ptr();
+        if (cur == nullptr) return;
+        cur = next(cur);
         while (cur && cur != end_node_ptr())
         {
             node* n = next(cur);
             demake_node(cur);
             cur = n;
         }
+        m_size = 0;
+        m_level = 1;
     }
 
     skip_list() 
         : m_head{ ::std::make_unique<node>() }, 
           m_end_sentinel{ ::std::make_unique<node>() }
     {
-        // TODO: Rewrite this part. Read the paper.
         auto& h = *head_node_ptr();
         for (size_t i{}; i < max_level(); ++i)
             h[i] = end_node_ptr();
     }
 
-    skip_list(skip_list&& other) noexcept = default;
-    skip_list& operator=(skip_list&& other) noexcept = default;
-    size_t size() const noexcept { return m_size; }
-    size_t level() const noexcept { return m_level; }
-    bool empty() const noexcept { return size() == 0; }
-    auto& allocator() noexcept { return m_alloc; }
+    skip_list(skip_list&& other) noexcept
+        : m_head{ ::std::move(other.m_head) }, 
+          m_end_sentinel{ ::std::move(other.m_end_sentinel) }, 
+          m_alloc{ ::std::move(other.m_alloc) }, 
+          m_size{ ::std::exchange(other.m_size, 0) }, 
+          m_level{ ::std::exchange(other.m_level, 0) }
+    {
+    }
+
+    skip_list& operator=(skip_list&& other) noexcept
+    {
+        clear();
+        m_head          = ::std::move(other.m_head); 
+        m_end_sentinel  = ::std::move(other.m_end_sentinel); 
+        m_alloc         = ::std::move(other.m_alloc); 
+        m_size          = ::std::exchange(other.m_size, 0); 
+        m_level         = ::std::exchange(other.m_level, 0); 
+        m_rd            = ::std::random_device{};
+        m_rng           = ::std::mt19937{m_rd};
+        return *this;
+    }
+
+    size_t  size()  const noexcept { return m_size; }
+    size_t  level() const noexcept { return m_level; }
+    bool    empty() const noexcept { return size() == 0; }
+    auto&   allocator() noexcept { return m_alloc; }
 
     iterator find(const key_type& k)
     {
@@ -229,7 +254,12 @@ public:
         return { x };
     }
 
-    iterator emplace(value_type kv)
+    bool contains(const key_type& k) const noexcept
+    {
+        return find(k) != end();
+    }
+
+    iterator insert(value_type kv)
     {
         ::std::array<node*, max_level()> update{};
         node* x = next(left_nearest(kv.first, update));
@@ -255,15 +285,10 @@ public:
         return { newnode };
     }
 
-    iterator insert(value_type kv) 
-    {
-        return emplace(::std::move(kv));
-    }
-
     template<typename Arg1, typename Arg2>
     iterator insert(Arg1&& a1, Arg2&& a2)
     {
-        return emplace(value_type{ ::std::forward<Arg1>(a1), ::std::forward<Arg2>(a2) });
+        return insert({ ::std::forward<Arg1>(a1), ::std::forward<Arg2>(a2) });
     }
 
     void erase(const key_type& key)
@@ -338,11 +363,11 @@ private:
 private:
     ::std::unique_ptr<node> m_head{};
     ::std::unique_ptr<node> m_end_sentinel{};
-    allocator_type m_alloc;
-    size_t m_size{};
-    size_t m_level{1};
-    mutable ::std::random_device rd;
-    mutable ::std::mt19937 m_rng{rd()};
+    allocator_type          m_alloc;
+    size_t                  m_size{};
+    size_t                  m_level{1};
+    mutable ::std::random_device m_rd;
+    mutable ::std::mt19937 m_rng{m_rd()};
 };
 
 template<typename L>
