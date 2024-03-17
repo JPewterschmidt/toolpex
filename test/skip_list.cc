@@ -79,3 +79,18 @@ TEST(skip_list, insert_range)
           });
     s.insert_range(r);
 }
+
+TEST(skip_list, front_and_back)
+{
+    skip_list<int, int, 4> s{};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+
+    ASSERT_EQ(s.front().first, 0);
+    ASSERT_EQ(s.back().first, 99);
+    s.front().second = 2;
+    ASSERT_EQ(::std::as_const(s).front().second, 2);
+}

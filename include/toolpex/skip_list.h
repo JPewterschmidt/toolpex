@@ -182,8 +182,8 @@ public:
             return result;
         }
 
-        auto operator*() const noexcept { return m_ptr->value(); }
-        auto operator ->() const noexcept { return m_ptr->value_ptr(); }
+        decltype(auto) operator*() const noexcept { return m_ptr->value(); }
+        auto* operator ->() const noexcept { return m_ptr->value_ptr(); }
 
         bool operator == (const normal_iterator& other) const noexcept 
         { 
@@ -221,6 +221,10 @@ public:
 
     iterator last() noexcept { return { right_most_node(head_node_ptr(), level()) }; }
     const_iterator last() const noexcept { return { right_most_node(head_node_ptr(), level()) }; }
+    decltype(auto) back() noexcept { return *last(); }
+    decltype(auto) back() const noexcept { return *last(); }
+    decltype(auto) front() noexcept { return *begin(); }
+    decltype(auto) front() const noexcept { return *begin(); }
 
     ~skip_list() noexcept { clear(); }
 
