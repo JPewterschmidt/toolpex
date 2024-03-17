@@ -72,7 +72,8 @@ private:
 
         reference value() noexcept { return *m_valp; }
         const_reference value() const noexcept { return *m_valp; }
-
+        bool is_end_sentinel() const noexcept { return m_forward_ptrs[0] == nullptr; }
+        
     private:
         ::std::array<node*, max_level()> m_forward_ptrs{};
         ::std::unique_ptr<value_type, value_deleter> m_valp{};
@@ -144,6 +145,7 @@ public:
         friend class skip_list;
 
     public:
+        iterator() noexcept = default;
         iterator(node* n) noexcept : m_ptr{ n } {}
 
         iterator& operator++() noexcept 
@@ -165,7 +167,11 @@ public:
         const_pointer    operator ->() const noexcept { return &operator*(); }
         pointer          operator ->()       noexcept { return &operator*(); }
 
-        bool operator == (const iterator& other) const noexcept { return m_ptr == other.m_ptr; }
+        bool operator == (const iterator& other) const noexcept 
+        { 
+            if (m_ptr) [[likely]] return (m_ptr == other.m_ptr);
+            else return other.m_ptr->is_end_sentinel();               
+        }
 
     private:
         node* m_ptr{};
