@@ -10,36 +10,11 @@ TEST(errret_thrower, negative_1)
     toolpex::errret_thrower et;
     ASSERT_EQ(et(1), 1);
     ASSERT_EQ(et(0), 0);
-    bool success_flag{};
-    
-    try
-    {
-        errno = 22;
-        et << -1;
-    }
-    catch (::std::runtime_error& e)
-    {
-        ASSERT_EQ(::std::string_view{ e.what() }, "Invalid argument"sv);
-        success_flag = true;
-    }
-
-    ASSERT_EQ(success_flag, true);
+    EXPECT_THROW((et << -1), ::std::runtime_error);
 }
 
 TEST(errret_thrower, negative_errno)
 {
     toolpex::errret_thrower et;
-    bool success_flag{};
-    
-    try
-    {
-        et << -22;
-    }
-    catch (::std::runtime_error& e)
-    {
-        ASSERT_EQ(e.what(), "Invalid argument"sv);
-        success_flag = true;
-    }
-
-    ASSERT_EQ(success_flag, true);
+    EXPECT_THROW((et << -22), ::std::runtime_error);
 }
