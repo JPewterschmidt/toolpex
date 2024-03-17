@@ -6,12 +6,14 @@
 #include <utility>
 #include <iterator>
 #include <random>
+#include <functional>
 
 namespace toolpex
 {
 
 template<typename Key, typename Mapped, 
          ::std::size_t MaxLevel, 
+         typename Compare = ::std::less<Key>, 
          typename Alloc = ::std::allocator<::std::pair<Key, Mapped>>>
 requires (::std::is_nothrow_move_constructible_v<Key> 
        && ::std::is_nothrow_move_constructible_v<Mapped>)
@@ -30,6 +32,7 @@ public:
     using pointer                   = value_type*;
     using const_pointer             = const value_type*;
     using allocator_type            = Alloc;
+    using key_compare               = Compare;
 
     constexpr static ::std::size_t max_level() noexcept { return MaxLevel; }
     static_assert(max_level() > 0, "The constant MaxLevel must be greater than 0!");
@@ -61,10 +64,16 @@ private:
     {
     public:
         node() noexcept = default;
-        node(::std::unique_ptr<value_type, value_deleter> s) noexcept : m_valp{ ::std::move(s) } {}
+        node(::std::unique_ptr<value_type, value_deleter> s) noexcept 
+            : m_valp{ ::std::move(s) } 
+        {
+        }
 
-        node*& operator[](::std::size_t idx) noexcept { return m_forward_ptrs[idx]; }
-        const node* operator[](::std::size_t idx) const noexcept { return m_forward_ptrs[idx]; }
+        node*& operator[](::std::size_t idx) noexcept 
+        { return m_forward_ptrs[idx]; }
+
+        const node* operator[](::std::size_t idx) const noexcept 
+        { return m_forward_ptrs[idx]; }
 
         const key_type* key_ptr() const noexcept 
         { 
@@ -84,11 +93,15 @@ private:
     template<typename KKey, typename VValue>
     node* make_node(KKey&& k, VValue&& v)
     {
-        typename ::std::allocator_traits<allocator_type>::template rebind_alloc<node> alloc;
+        typename ::std::allocator_traits<allocator_type>::
+            template rebind_alloc<node> alloc;
         node* result = alloc.allocate(1);
         try
         {
-            new (result) node{make_value(::std::forward<KKey>(k), ::std::forward<VValue>(v))};
+            new (result) node{make_value(
+                ::std::forward<KKey>(k), 
+                ::std::forward<VValue>(v)
+            )};
         }
         catch (...)
         {
@@ -101,7 +114,8 @@ private:
     void demake_node(node* n)
     {
         n->~node();
-        typename ::std::allocator_traits<allocator_type>::template rebind_alloc<node> alloc;
+        typename ::std::allocator_traits<allocator_type>::
+            template rebind_alloc<node> alloc;
         alloc.deallocate(n, 1);
     }
 
@@ -109,14 +123,19 @@ private:
     ::std::unique_ptr<value_type, value_deleter> 
     make_value(KeyT&& k, Args&&... vargs)
     {
-        pointer result = ::std::allocator_traits<allocator_type>::allocate(m_alloc, 1);
+        pointer result = ::std::allocator_traits<allocator_type>::
+            allocate(m_alloc, 1);
         try
         {
-            new (result) value_type(::std::forward<KeyT>(k), ::std::forward<Args>(vargs)...);
+            new (result) value_type(
+                ::std::forward<KeyT>(k), 
+                ::std::forward<Args>(vargs)...
+            );
         }
         catch (...)
         {
-            ::std::allocator_traits<allocator_type>::deallocate(allocator(), result, 1);
+            ::std::allocator_traits<allocator_type>::
+                deallocate(allocator(), result, 1);
             throw;
         }
         return { result, value_deleter{this} };
@@ -270,10 +289,12 @@ public:
         ::std::array<node*, max_level()> update{};
         node* x = next(left_nearest(k, update));
 
-        if (auto* kp = x->key_ptr(); kp && *kp == k) 
+        if (auto* kp = x->key_ptr(); kp && keys_equal(*kp, k)) 
             return x->value().second;
 
-        return add_node_to_list(update, ::std::forward<KK>(k), mapped_type{})->value().second;
+        return add_node_to_list(
+            update, ::std::forward<KK>(k), mapped_type{}
+        )->value().second;
     }
 
     bool contains(const key_type& k) const noexcept
@@ -286,20 +307,22 @@ public:
     {
         ::std::array<node*, max_level()> update{};
         node* x = next(left_nearest(k, update));
-        if (const auto* kp = x->key_ptr(); kp && *kp == k) 
+        if (const auto* kp = x->key_ptr(); kp && keys_equal(*kp, k)) 
         {
             // Exception free. There's a constraint about nothrow_move_constructible
             x->value().second = ::std::forward<VV>(v);
             return {x};
         }
-        return { add_node_to_list(update, ::std::forward<KK>(k), ::std::forward<VV>(v)) };
+        return { add_node_to_list(
+            update, ::std::forward<KK>(k), ::std::forward<VV>(v)
+        )};
     }
 
     void erase(const key_type& key)
     {
         ::std::array<node*, max_level()> update{};
         node* x = next(left_nearest(key, update));
-        if (const auto* keyp = x->key_ptr(); keyp && *keyp == key)
+        if (const auto* keyp = x->key_ptr(); keyp && keys_equal(*keyp, key))
         {
             for (size_t i{}; i < level(); ++i)
             {
@@ -314,6 +337,11 @@ public:
     }
 
 private:
+    bool keys_equal(auto&& lhs, auto&& rhs)
+    {
+        return !m_cmp(lhs, rhs) && !m_cmp(rhs, lhs);
+    }
+
     template<typename KK, typename VV>
     node* add_node_to_list(auto& update, KK&& k, VV&& v)
     {
@@ -356,7 +384,7 @@ private:
         const node* x = head_node_ptr();
         for (int l = level() - 1; l >= 0; --l)
         {
-            while (forward(x, l)->key_ptr() && *(forward(x, l)->key_ptr()) < k)
+            while (forward(x, l)->key_ptr() && m_cmp(*(forward(x, l)->key_ptr()), k))
                 x = forward(x, l);
         }
         return x;
@@ -367,13 +395,18 @@ private:
         return const_cast<node*>(::std::as_const(*this).left_nearest(k));
     }
 
-    node* left_nearest(const key_type& k, ::std::array<node*, max_level()>& update) noexcept
+    node* left_nearest(
+        const key_type& k, 
+        ::std::array<node*, max_level()>& update) noexcept
     {
         node* x = head_node_ptr();
         for (int l = level() - 1; l >= 0; --l)
         {
-            while (forward(x, l)->key_ptr() && *(forward(x, l)->key_ptr()) < k)
+            while (forward(x, l)->key_ptr() 
+                && m_cmp(*(forward(x, l)->key_ptr()), k))
+            {
                 x = forward(x, l);
+            }
             update[l] = x;
         }
         return x;
@@ -409,6 +442,7 @@ private:
     size_t                  m_level{1};
     mutable ::std::random_device m_rd;
     mutable ::std::mt19937 m_rng{m_rd()};
+    key_compare             m_cmp{};
 };
 
 template<typename L>
