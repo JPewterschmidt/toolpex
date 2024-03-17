@@ -130,7 +130,7 @@ private:
 
 public:
     template<typename NodeT = node>
-    class iterator
+    class normal_iterator 
     {
     public:
         using difference_type = ::std::ptrdiff_t;
@@ -144,18 +144,18 @@ public:
         friend class skip_list;
 
     public:
-        constexpr iterator() noexcept = default;
-        iterator(NodeT* n) noexcept : m_ptr{ n } {}
+        constexpr normal_iterator() noexcept = default;
+        normal_iterator(NodeT* n) noexcept : m_ptr{ n } {}
 
-        iterator& operator++() noexcept 
+        normal_iterator& operator++() noexcept 
         { 
             m_ptr = (*m_ptr)[0];
             return *this;
         }
 
-        iterator operator++(int) noexcept
+        normal_iterator operator++(int) noexcept
         {
-            iterator result{ *this };
+            normal_iterator result{ *this };
             operator++();
             return result;
         }
@@ -166,7 +166,7 @@ public:
         const_pointer    operator ->() const noexcept { return &operator*(); }
         pointer          operator ->()       noexcept { return &operator*(); }
 
-        bool operator == (const iterator& other) const noexcept 
+        bool operator == (const normal_iterator& other) const noexcept 
         { 
             if (m_ptr) [[likely]] return (m_ptr == other.m_ptr);
             else return other.m_ptr->is_end_sentinel();               
@@ -176,19 +176,22 @@ public:
         NodeT* m_ptr{};
     };
 
+    using iterator = normal_iterator<node>;
+    using const_iterator = normal_iterator<const node>;
+
 private:
-    void demake_node(iterator<node> iter)
+    void demake_node(iterator iter)
     {
         demake_node(iter.m_ptr);
     }
 
 public:
-    iterator<node>          begin() noexcept { return { next(head_node_ptr()) }; }
-    iterator<node>          end() noexcept { return { end_node_ptr() }; }
-    iterator<const node>    begin() const noexcept { return { next(head_node_ptr()) }; }
-    iterator<const node>    end() const noexcept { return { end_node_ptr() }; }
-    iterator<const node>    cbegin() const noexcept { return begin(); }
-    iterator<const node>    cend() const noexcept { return end(); }
+    iterator        begin() noexcept { return { next(head_node_ptr()) }; }
+    iterator        end() noexcept { return { end_node_ptr() }; }
+    const_iterator  begin() const noexcept { return { next(head_node_ptr()) }; }
+    const_iterator  end() const noexcept { return { end_node_ptr() }; }
+    const_iterator  cbegin() const noexcept { return begin(); }
+    const_iterator  cend() const noexcept { return end(); }
 
     ~skip_list() noexcept { clear(); }
 
@@ -243,14 +246,14 @@ public:
     bool    empty() const noexcept { return size() == 0; }
     auto&   allocator() noexcept { return m_alloc; }
 
-    iterator<node> find(const key_type& k) noexcept
+    iterator find(const key_type& k) noexcept
     {
         auto* x = next(left_nearest(k));
         if (x == end_node_ptr() || *(x->key_ptr()) != k) return { end_node_ptr() };
         return { x };
     }
 
-    iterator<const node> find(const key_type& k) const noexcept
+    const_iterator find(const key_type& k) const noexcept
     {
         const auto* x = next(left_nearest(k));
         if (x == end_node_ptr() || *(x->key_ptr()) != k) return { end_node_ptr() };
@@ -263,7 +266,7 @@ public:
     }
 
     template<typename KK, typename VV>
-    iterator<node> insert(KK&& k, VV&& v)
+    iterator insert(KK&& k, VV&& v)
     {
         const size_t old_size = size(), old_level = level();
 
