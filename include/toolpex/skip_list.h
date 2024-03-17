@@ -7,6 +7,7 @@
 #include <iterator>
 #include <random>
 #include <functional>
+#include <type_traits>
 
 namespace toolpex
 {
@@ -83,6 +84,8 @@ private:
 
         reference value() noexcept { return *m_valp; }
         const_reference value() const noexcept { return *m_valp; }
+        pointer value_ptr() noexcept { return m_valp.get(); }
+        const_pointer value_ptr() const noexcept { return m_valp.get(); }
         bool is_end_sentinel() const noexcept { return m_forward_ptrs[0] == nullptr; }
         
     private:
@@ -179,11 +182,8 @@ public:
             return result;
         }
 
-        const_reference operator*() const noexcept { return m_ptr->value(); }
-        reference       operator*()       noexcept { return m_ptr->value(); }
-
-        const_pointer    operator ->() const noexcept { return &operator*(); }
-        pointer          operator ->()       noexcept { return &operator*(); }
+        auto operator*() const noexcept { return m_ptr->value(); }
+        auto operator ->() const noexcept { return m_ptr->value_ptr(); }
 
         bool operator == (const normal_iterator& other) const noexcept 
         { 
@@ -219,6 +219,9 @@ public:
     const_iterator  cbegin() const noexcept { return begin(); }
     const_iterator  cend() const noexcept { return end(); }
 
+    iterator last() noexcept { return { right_most_node(head_node_ptr(), level()) }; }
+    const_iterator last() const noexcept { return { right_most_node(head_node_ptr(), level()) }; }
+
     ~skip_list() noexcept { clear(); }
 
     void clear() noexcept
@@ -249,7 +252,8 @@ public:
           m_end_sentinel{ ::std::move(other.m_end_sentinel) }, 
           m_alloc{ ::std::move(other.m_alloc) }, 
           m_size{ ::std::exchange(other.m_size, 0) }, 
-          m_level{ ::std::exchange(other.m_level, 0) }
+          m_level{ ::std::exchange(other.m_level, 0) }, 
+          m_cmp{ ::std::move(other.m_cmp) }
     {
     }
 
@@ -260,7 +264,8 @@ public:
         m_end_sentinel  = ::std::move(other.m_end_sentinel); 
         m_alloc         = ::std::move(other.m_alloc); 
         m_size          = ::std::exchange(other.m_size, 0); 
-        m_level         = ::std::exchange(other.m_level, 0); 
+        m_level         = ::std::exchange(other.m_level, 0);
+        m_cmp           = ::std::move(other.m_cmp);
         return *this;
     }
 
@@ -420,6 +425,16 @@ private:
                 x = forward(x, l);
             }
             update[l] = x;
+        }
+        return x;
+    }
+
+    static auto* right_most_node(auto* x, const size_t level) noexcept
+    {
+        for (int l = level - 1; l >= 0; --l)
+        {
+            while (!forward(x, l)->is_end_sentinel())
+                x = forward(x, l);
         }
         return x;
     }

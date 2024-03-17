@@ -55,6 +55,12 @@ TEST(skip_list, iterator)
 
     ::std::map<int, int> imap(s.begin(), s.end());
     ASSERT_EQ(imap.size(), s.size());
+
+    iter = s.last();
+    ASSERT_EQ(iter->second, 11);
+    iter->second = 12;
+    auto val = ::std::as_const(s).last()->second;
+    ASSERT_EQ(val, 12);
 }
 
 TEST(skip_list, subscriptor_operator)
