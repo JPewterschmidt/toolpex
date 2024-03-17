@@ -185,6 +185,13 @@ private:
         demake_node(iter.m_ptr);
     }
 
+    void init()
+    {
+        auto& h = *head_node_ptr();
+        for (size_t i{}; i < max_level(); ++i)
+            h[i] = end_node_ptr();
+    }
+
 public:
     iterator        begin() noexcept { return { next(head_node_ptr()) }; }
     iterator        end() noexcept { return { end_node_ptr() }; }
@@ -208,15 +215,14 @@ public:
         }
         m_size = 0;
         m_level = 1;
+        init();
     }
 
     skip_list() 
         : m_head{ ::std::make_unique<node>() }, 
           m_end_sentinel{ ::std::make_unique<node>() }
     {
-        auto& h = *head_node_ptr();
-        for (size_t i{}; i < max_level(); ++i)
-            h[i] = end_node_ptr();
+        init();
     }
 
     skip_list(skip_list&& other) noexcept
@@ -236,8 +242,6 @@ public:
         m_alloc         = ::std::move(other.m_alloc); 
         m_size          = ::std::exchange(other.m_size, 0); 
         m_level         = ::std::exchange(other.m_level, 0); 
-        m_rd            = ::std::random_device{};
-        m_rng           = ::std::mt19937{m_rd};
         return *this;
     }
 
