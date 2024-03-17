@@ -13,6 +13,8 @@ namespace toolpex
 template<typename Key, typename Mapped, 
          ::std::size_t MaxLevel, 
          typename Alloc = ::std::allocator<::std::pair<Key, Mapped>>>
+requires (::std::is_nothrow_move_constructible_v<Key> 
+       && ::std::is_nothrow_move_constructible_v<Mapped>)
 class skip_list
 {
 public:
@@ -79,23 +81,21 @@ private:
         ::std::unique_ptr<value_type, value_deleter> m_valp{};
     };
 
-    template<typename KVPair>
-    node* make_node(KVPair&& kvp)
+    template<typename KKey, typename VValue>
+    node* make_node(KKey&& k, VValue&& v)
     {
-        // TODO: Should I receive a level argument and do soemthing init stuff about the level ? 
         typename ::std::allocator_traits<allocator_type>::template rebind_alloc<node> alloc;
         node* result = alloc.allocate(1);
-        new (result) node{make_value(::std::forward<KVPair>(kvp))};
+        try
+        {
+            new (result) node{make_value(::std::forward<KKey>(k), ::std::forward<VValue>(v))};
+        }
+        catch (...)
+        {
+            alloc.deallocate(result, 1);
+            throw;
+        }
         return result;
-    }
-
-    template<typename KKey, typename VValue>
-    node* make_node(KKey k, VValue v)
-    {
-        return make_node(::std::pair<key_type, value_type>{
-            ::std::forward<KKey>(k), 
-            ::std::forward<VValue>(v)
-        });
     }
 
     void demake_node(node* n)
@@ -107,20 +107,18 @@ private:
 
     template<typename KeyT, typename... Args>
     ::std::unique_ptr<value_type, value_deleter> 
-    make_value(KeyT&& k, Args&&... args_for_mapped)
-    {
-        return make_value(::std::pair<key_type, value_type>{
-            ::std::forward<KeyT>(k), 
-            value_type(::std::forward<Args>(args_for_mapped)...)
-        });
-    }
-
-    template<typename KVPair>
-    ::std::unique_ptr<value_type, value_deleter> 
-    make_value(KVPair&& kvp)
+    make_value(KeyT&& k, Args&&... vargs)
     {
         pointer result = ::std::allocator_traits<allocator_type>::allocate(m_alloc, 1);
-        new (result) value_type(::std::forward<KVPair>(kvp));
+        try
+        {
+            new (result) value_type(::std::forward<KeyT>(k), ::std::forward<Args>(vargs)...);
+        }
+        catch (...)
+        {
+            ::std::allocator_traits<allocator_type>::deallocate(allocator(), result, 1);
+            throw;
+        }
         return { result, value_deleter{this} };
     }
 
@@ -259,13 +257,17 @@ public:
         return find(k) != end();
     }
 
-    iterator insert(value_type kv)
+    template<typename KK, typename VV>
+    iterator insert(KK&& k, VV&& v)
     {
+        const size_t old_size = size(), old_level = level();
+
         ::std::array<node*, max_level()> update{};
-        node* x = next(left_nearest(kv.first, update));
-        if (const auto* kp = x->key_ptr(); kp && *kp == kv.first) 
+        node* x = next(left_nearest(k, update));
+        if (const auto* kp = x->key_ptr(); kp && *kp == k) 
         {
-            x->value().second = ::std::move(kv.second);
+            // Exception free. There's a constraint about nothrow_move_constructible
+            x->value().second = ::std::forward<VV>(v);
             return {x};
         }
         const size_t new_level = random_level();
@@ -275,20 +277,25 @@ public:
                 update[i] = head_node_ptr();
             m_level = new_level;
         }
-        node* newnode = make_node(::std::move(kv));
-        for (size_t i{}; i < new_level; ++i)
-        {
-            forward(newnode, i) = forward(update[i], i);
-            forward(update[i], i) = newnode;
-        }
-        ++ m_size;
-        return { newnode };
-    }
 
-    template<typename Arg1, typename Arg2>
-    iterator insert(Arg1&& a1, Arg2&& a2)
-    {
-        return insert({ ::std::forward<Arg1>(a1), ::std::forward<Arg2>(a2) });
+        // Strong exception-safty.
+        try
+        {
+            node* newnode = make_node(::std::forward<KK>(k), ::std::forward<VV>(v));
+            for (size_t i{}; i < new_level; ++i)
+            {
+                forward(newnode, i) = ::std::exchange(forward(update[i], i), newnode);
+            }
+            ++ m_size;
+            return { newnode };
+        }
+        catch (...)
+        {
+            // Reset the context to provide strong exception safty.
+            m_size = old_size;
+            m_level = old_level;
+            throw;   
+        }
     }
 
     void erase(const key_type& key)
