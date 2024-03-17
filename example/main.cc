@@ -24,12 +24,13 @@ using namespace ::std::string_view_literals;
 int main()
 {
     skip_list<int, int, 4> il{};
-    il.insert(1, 1);
-    il.insert(1, 2);
-    il.insert(1, 3);
-    il.insert(1, 4);
-    il.insert(1, 5);
-    il.insert(1, 6);
+    ::std::cout << skip_list_debug{ il }.actual_size() << ::std::endl;
+
+    for (int i{}; i < 10; ++i)
+    {
+        il.insert(i, i + 1);
+        ::std::cout << skip_list_debug{ il }.actual_size() << ::std::endl;
+    }
 
     return 0;
 }

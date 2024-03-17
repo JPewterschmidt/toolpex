@@ -242,7 +242,8 @@ public:
         node* newnode = make_node(::std::move(kv));
         for (size_t i{}; i < new_level; ++i)
         {
-            (*newnode)[i] = ::std::exchange((*update[i])[i], newnode);
+            forward(newnode, i) = forward(update[i], i);
+            forward(update[i], i) = newnode;
         }
         ++ m_size;
         return { newnode };
@@ -278,30 +279,29 @@ public:
     }
 
 private:
+    static node*& forward(node* n, size_t l) noexcept
+    {
+        return (*n)[l];
+    }
+
     node* left_nearest(const key_type& k)
     {
-        node* x = m_head.get();
-        for (size_t l = max_level() - 1; l >= 0; --l)
+        node* x = head_node_ptr();
+        for (int l = level() - 1; l >= 0; --l)
         {
-            auto& xref = *x;
-            node* x_forward = xref[l];
-            auto* valp = x_forward->key_ptr(); 
-            while (valp && *valp < k)
-                x = x_forward;
+            while (forward(x, l)->key_ptr() && *(forward(x, l)->key_ptr()) < k)
+                x = forward(x, l);
         }
         return x;
     }
 
     node* left_nearest(const key_type& k, ::std::array<node*, max_level()>& update)
     {
-        node* x = m_head.get();
-        for (size_t l = max_level() - 1; l >= 0; --l)
+        node* x = head_node_ptr();
+        for (int l = level() - 1; l >= 0; --l)
         {
-            auto& xref = *x;
-            node* x_forward = xref[l];
-            auto* valp = x_forward->key_ptr(); 
-            while (valp && *valp < k)
-                x = x_forward;
+            while (forward(x, l)->key_ptr() && *(forward(x, l)->key_ptr()) < k)
+                x = forward(x, l);
             update[l] = x;
         }
         return x;
@@ -320,19 +320,48 @@ private:
     size_t random_level() const noexcept
     {
         size_t result{};
-        ::std::uniform_real_distribution dist(0, 1);
+        ::std::uniform_real_distribution dist(0.0, 1.0);
         while (dist(m_rng) < 0.5) 
             ++result;
-        return result;
+        return (result % (max_level() - 1)) + 1;
     }
+
+    template<typename>
+    friend class skip_list_debug;
     
 private:
     ::std::unique_ptr<node> m_head{};
     ::std::unique_ptr<node> m_end_sentinel{};
     allocator_type m_alloc;
     size_t m_size{};
-    size_t m_level{};
-    mutable ::std::mt19937 m_rng{};
+    size_t m_level{1};
+    mutable ::std::random_device rd;
+    mutable ::std::mt19937 m_rng{rd()};
+};
+
+template<typename L>
+class skip_list_debug
+{
+public:
+    skip_list_debug(L& l)
+        : m_list{ &l }
+    {
+    }
+
+    size_t actual_size() const noexcept
+    {
+        auto* cur = m_list->head_node_ptr();
+        size_t result{};
+        while (cur && cur != m_list->end_node_ptr())
+        {
+            cur = (*cur)[0];
+            ++result;
+        }
+        return result - 1;
+    }
+
+private:
+    L* m_list;
 };
 
 } // namespace toolpex
