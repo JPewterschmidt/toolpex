@@ -19,5 +19,5 @@ TEST(skip_list, basic)
     ASSERT_EQ(s2.find(3)->second, 4);
     ASSERT_EQ(s2.find(100)->second, 101);
 
-    //ASSERT_TRUE(s2.contains(10));
+    ASSERT_TRUE(s2.contains(10));
 }

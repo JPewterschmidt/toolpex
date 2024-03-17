@@ -129,6 +129,7 @@ private:
     }
 
 public:
+    template<typename NodeT = node>
     class iterator
     {
     public:
@@ -143,8 +144,8 @@ public:
         friend class skip_list;
 
     public:
-        iterator() noexcept = default;
-        iterator(node* n) noexcept : m_ptr{ n } {}
+        constexpr iterator() noexcept = default;
+        iterator(NodeT* n) noexcept : m_ptr{ n } {}
 
         iterator& operator++() noexcept 
         { 
@@ -172,25 +173,22 @@ public:
         }
 
     private:
-        node* m_ptr{};
+        NodeT* m_ptr{};
     };
 
 private:
-    void demake_node(iterator iter)
+    void demake_node(iterator<node> iter)
     {
         demake_node(iter.m_ptr);
     }
 
 public:
-    iterator begin() noexcept
-    {
-        return { next(head_node_ptr()) };
-    }
-
-    iterator end() noexcept
-    {
-        return { end_node_ptr() };
-    }
+    iterator<node>          begin() noexcept { return { next(head_node_ptr()) }; }
+    iterator<node>          end() noexcept { return { end_node_ptr() }; }
+    iterator<const node>    begin() const noexcept { return { next(head_node_ptr()) }; }
+    iterator<const node>    end() const noexcept { return { end_node_ptr() }; }
+    iterator<const node>    cbegin() const noexcept { return begin(); }
+    iterator<const node>    cend() const noexcept { return end(); }
 
     ~skip_list() noexcept { clear(); }
 
@@ -245,9 +243,16 @@ public:
     bool    empty() const noexcept { return size() == 0; }
     auto&   allocator() noexcept { return m_alloc; }
 
-    iterator find(const key_type& k)
+    iterator<node> find(const key_type& k) noexcept
     {
         auto* x = next(left_nearest(k));
+        if (x == end_node_ptr() || *(x->key_ptr()) != k) return { end_node_ptr() };
+        return { x };
+    }
+
+    iterator<const node> find(const key_type& k) const noexcept
+    {
+        const auto* x = next(left_nearest(k));
         if (x == end_node_ptr() || *(x->key_ptr()) != k) return { end_node_ptr() };
         return { x };
     }
@@ -258,7 +263,7 @@ public:
     }
 
     template<typename KK, typename VV>
-    iterator insert(KK&& k, VV&& v)
+    iterator<node> insert(KK&& k, VV&& v)
     {
         const size_t old_size = size(), old_level = level();
 
@@ -317,14 +322,14 @@ public:
     }
 
 private:
-    static node*& forward(node* n, size_t l) noexcept
+    static decltype(auto) forward(auto* n, size_t l) noexcept
     {
-        return (*n)[l];
+        return ((*n)[l]);
     }
 
-    node* left_nearest(const key_type& k)
+    const node* left_nearest(const key_type& k) const noexcept
     {
-        node* x = head_node_ptr();
+        const node* x = head_node_ptr();
         for (int l = level() - 1; l >= 0; --l)
         {
             while (forward(x, l)->key_ptr() && *(forward(x, l)->key_ptr()) < k)
@@ -333,7 +338,12 @@ private:
         return x;
     }
 
-    node* left_nearest(const key_type& k, ::std::array<node*, max_level()>& update)
+    node* left_nearest(const key_type& k) noexcept
+    {
+        return const_cast<node*>(::std::as_const(*this).left_nearest(k));
+    }
+
+    node* left_nearest(const key_type& k, ::std::array<node*, max_level()>& update) noexcept
     {
         node* x = head_node_ptr();
         for (int l = level() - 1; l >= 0; --l)
@@ -345,7 +355,7 @@ private:
         return x;
     }
 
-    static node* next(node* n) noexcept
+    static auto* next(auto* n) noexcept
     {
         return (*n)[0];
     }
