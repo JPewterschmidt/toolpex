@@ -21,23 +21,29 @@ using namespace ip_address_literals;
 using namespace ::std::string_literals;
 using namespace ::std::string_view_literals;
 
-void print(::std::ranges::range auto& r)
+void access_vec(const ::std::vector<int>& vec)
 {
-    for (const auto& item : r)
+    for (const auto item : vec)
     {
-        ::std::cout << item.second << ::std::endl;
+        ::std::cout << item << " ";
     }
+    ::std::cout << ::std::endl;
+}
+
+void access_vec2(::std::vector<int>& vec)
+{
+    for (const auto item : vec)
+    {
+        ::std::cout << item << " ";
+    }
+    ::std::cout << ::std::endl;
 }
 
 int main()
 {
-    skip_list<int, int, 5> s{};
-
-    for (int i : ::std::ranges::iota_view{0, 1000})
-        s.insert(i, i + 1);
-
-    auto s2 = ::std::move(s);
-
+    ::std::vector ivec{ 1,2,3 };
+    access_vec(ivec);
+    access_vec2(ivec);
 
     return 0;
 }
