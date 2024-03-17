@@ -264,6 +264,18 @@ public:
         return { x };
     }
 
+    template<typename KK>
+    reference_mapped operator[](KK&& k) noexcept
+    {
+        ::std::array<node*, max_level()> update{};
+        node* x = next(left_nearest(k, update));
+
+        if (auto* kp = x->key_ptr(); kp && *kp == k) 
+            return x->value().second;
+
+        return add_node_to_list(update, ::std::forward<KK>(k), mapped_type{})->value().second;
+    }
+
     bool contains(const key_type& k) const noexcept
     {
         return find(k) != end();
@@ -272,8 +284,6 @@ public:
     template<typename KK, typename VV>
     iterator insert(KK&& k, VV&& v)
     {
-        const size_t old_size = size(), old_level = level();
-
         ::std::array<node*, max_level()> update{};
         node* x = next(left_nearest(k, update));
         if (const auto* kp = x->key_ptr(); kp && *kp == k) 
@@ -282,32 +292,7 @@ public:
             x->value().second = ::std::forward<VV>(v);
             return {x};
         }
-        const size_t new_level = random_level();
-        if (new_level > level())
-        {
-            for (size_t i = level(); i < new_level; ++i)
-                update[i] = head_node_ptr();
-            m_level = new_level;
-        }
-
-        // Strong exception-safty.
-        try
-        {
-            node* newnode = make_node(::std::forward<KK>(k), ::std::forward<VV>(v));
-            for (size_t i{}; i < new_level; ++i)
-            {
-                forward(newnode, i) = ::std::exchange(forward(update[i], i), newnode);
-            }
-            ++ m_size;
-            return { newnode };
-        }
-        catch (...)
-        {
-            // Reset the context to provide strong exception safty.
-            m_size = old_size;
-            m_level = old_level;
-            throw;   
-        }
+        return { add_node_to_list(update, ::std::forward<KK>(k), ::std::forward<VV>(v)) };
     }
 
     void erase(const key_type& key)
@@ -329,6 +314,38 @@ public:
     }
 
 private:
+    template<typename KK, typename VV>
+    node* add_node_to_list(auto& update, KK&& k, VV&& v)
+    {
+        const size_t old_size = size(), old_level = level();
+        const size_t new_level = random_level();
+        if (new_level > level())
+        {
+            for (size_t i = level(); i < new_level; ++i)
+                update[i] = head_node_ptr();
+            m_level = new_level;
+        }
+
+        // Strong exception-safty.
+        try
+        {
+            node* newnode = make_node(::std::forward<KK>(k), ::std::forward<VV>(v));
+            for (size_t i{}; i < new_level; ++i)
+            {
+                forward(newnode, i) = ::std::exchange(forward(update[i], i), newnode);
+            }
+            ++ m_size;
+            return newnode;
+        }
+        catch (...)
+        {
+            // Reset the context to provide strong exception safty.
+            m_size = old_size;
+            m_level = old_level;
+            throw;   
+        }
+    }
+
     static decltype(auto) forward(auto* n, size_t l) noexcept
     {
         return ((*n)[l]);

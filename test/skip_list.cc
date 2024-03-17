@@ -56,3 +56,10 @@ TEST(skip_list, iterator)
     ::std::map<int, int> imap(s.begin(), s.end());
     ASSERT_EQ(imap.size(), s.size());
 }
+
+TEST(skip_list, subscriptor_operator)
+{
+    skip_list<int, int, 4> s{};
+    s[1] = 24;
+    ASSERT_EQ(s[1], 24);
+}
