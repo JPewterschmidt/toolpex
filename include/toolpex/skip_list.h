@@ -26,6 +26,7 @@ public:
     using pointer_mapped            = mapped_type*;
     using const_pointer_mapped      = const mapped_type*;
     using pointer                   = value_type*;
+    using const_pointer             = const value_type*;
     using allocator_type            = Alloc;
 
     constexpr static ::std::size_t max_level() noexcept { return MaxLevel; }
@@ -35,6 +36,7 @@ private:
     class value_deleter
     {
     public:
+        value_deleter() = default;
         value_deleter(skip_list* list) noexcept
             : m_list{ list }
         {
@@ -42,7 +44,11 @@ private:
 
         void operator()(pointer n) 
         {
-            m_list->demake_value(n);
+            if (m_list) 
+            {
+                m_list->demake_value(n);
+                m_list = nullptr;
+            }
         }
 
     private:
@@ -52,9 +58,10 @@ private:
     class node
     {
     public:
+        node() noexcept = default;
         node(::std::unique_ptr<value_type, value_deleter> s) noexcept : m_valp{ ::std::move(s) } {}
 
-        node* operator[](::std::size_t idx) noexcept { return m_forward_ptrs[idx]; }
+        node*& operator[](::std::size_t idx) noexcept { return m_forward_ptrs[idx]; }
         const node* operator[](::std::size_t idx) const noexcept { return m_forward_ptrs[idx]; }
 
         const key_type* key_ptr() const noexcept 
@@ -75,9 +82,9 @@ private:
     node* make_node(KVPair&& kvp)
     {
         // TODO: Should I receive a level argument and do soemthing init stuff about the level ? 
-        node* result = ::std::allocator_traits<allocator_type>::template rebind_alloc<node>::allocate(allocator(), 1);
-        new (result) node{};
-        result->m_storage = make_value(::std::forward<KVPair>(kvp));
+        typename ::std::allocator_traits<allocator_type>::template rebind_alloc<node> alloc;
+        node* result = alloc.allocate(1);
+        new (result) node{make_value(::std::forward<KVPair>(kvp))};
         return result;
     }
 
@@ -93,7 +100,8 @@ private:
     void demake_node(node* n)
     {
         n->~node();
-        ::std::allocator_traits<allocator_type>::template rebind_alloc<node>::deallocate(m_alloc, n, 1);
+        typename ::std::allocator_traits<allocator_type>::template rebind_alloc<node> alloc;
+        alloc.deallocate(n, 1);
     }
 
     template<typename KeyT, typename... Args>
@@ -125,6 +133,17 @@ public:
     class iterator
     {
     public:
+        using difference_type = ::std::ptrdiff_t;
+        using iterator_category = ::std::forward_iterator_tag;
+        using value_type = typename skip_list::value_type;
+        using reference = typename skip_list::reference;
+        using const_reference = typename skip_list::const_reference;
+        using pointer = typename skip_list::pointer;
+        using const_pointer = typename skip_list::const_pointer;
+
+        friend class skip_list;
+
+    public:
         iterator(node* n) noexcept : m_ptr{ n } {}
 
         iterator& operator++() noexcept 
@@ -140,11 +159,11 @@ public:
             return result;
         }
 
-        const_reference_mapped  operator*() const noexcept { return m_ptr->value().second; }
-        reference_mapped        operator*()       noexcept { return m_ptr->value().second; }
+        const_reference operator*() const noexcept { return m_ptr->value(); }
+        reference       operator*()       noexcept { return m_ptr->value(); }
 
-        const_pointer_mapped    operator ->() const noexcept { return &operator*(); }
-        pointer_mapped          operator ->()       noexcept { return &operator*(); }
+        const_pointer    operator ->() const noexcept { return &operator*(); }
+        pointer          operator ->()       noexcept { return &operator*(); }
 
         bool operator == (const iterator& other) const noexcept { return m_ptr == other.m_ptr; }
 
@@ -155,7 +174,7 @@ public:
 private:
     void demake_node(iterator iter)
     {
-        demake_node(iter.operator ->());
+        demake_node(iter.m_ptr);
     }
 
 public:
@@ -171,21 +190,23 @@ public:
 
     ~skip_list() noexcept
     {
-        iterator cur = begin();
-        while (cur != end())
+        node* cur = next(head_node_ptr());
+        while (cur && cur != end_node_ptr())
         {
-            iterator next = ::std::next(cur);
+            node* n = next(cur);
             demake_node(cur);
-            cur = next;
+            cur = n;
         }
     }
 
-    skip_list() noexcept
+    skip_list() 
+        : m_head{ ::std::make_unique<node>() }, 
+          m_end_sentinel{ ::std::make_unique<node>() }
     {
         // TODO: Rewrite this part. Read the paper.
-        auto& h = *m_head;
+        auto& h = *head_node_ptr();
         for (size_t i{}; i < max_level(); ++i)
-            h[i] = m_end_sentinel.get();
+            h[i] = end_node_ptr();
     }
 
     skip_list(skip_list&& other) noexcept = default;
@@ -202,14 +223,13 @@ public:
         return { x };
     }
 
-    template<typename... Args>
     iterator emplace(value_type kv)
     {
         ::std::array<node*, max_level()> update{};
         node* x = next(left_nearest(kv.first, update));
         if (const auto* kp = x->key_ptr(); kp && *kp == kv.first) 
         {
-            x->value() = ::std::move(kv.second);
+            x->value().second = ::std::move(kv.second);
             return {x};
         }
         const size_t new_level = random_level();
@@ -226,6 +246,17 @@ public:
         }
         ++ m_size;
         return { newnode };
+    }
+
+    iterator insert(value_type kv) 
+    {
+        return emplace(::std::move(kv));
+    }
+
+    template<typename Arg1, typename Arg2>
+    iterator insert(Arg1&& a1, Arg2&& a2)
+    {
+        return emplace(value_type{ ::std::forward<Arg1>(a1), ::std::forward<Arg2>(a2) });
     }
 
     void erase(const key_type& key)
@@ -268,7 +299,7 @@ private:
         {
             auto& xref = *x;
             node* x_forward = xref[l];
-            auto* valp = x_forward->key(); 
+            auto* valp = x_forward->key_ptr(); 
             while (valp && *valp < k)
                 x = x_forward;
             update[l] = x;
@@ -284,20 +315,24 @@ private:
     const node* end_node_ptr() const noexcept { return m_end_sentinel.get(); }
     const node* head_node_ptr() const noexcept { return m_head.get(); }
     node* head_node_ptr() noexcept { return m_head.get(); }
+    node* end_node_ptr() noexcept { return m_end_sentinel.get(); }
 
     size_t random_level() const noexcept
     {
-        ::std::uniform_int_distribution<size_t> dist(1, max_level());
-        return dist(m_rng);
+        size_t result{};
+        ::std::uniform_real_distribution dist(0, 1);
+        while (dist(m_rng) < 0.5) 
+            ++result;
+        return result;
     }
     
 private:
-    ::std::unique_ptr<node> m_end_sentinel{};
     ::std::unique_ptr<node> m_head{};
+    ::std::unique_ptr<node> m_end_sentinel{};
     allocator_type m_alloc;
     size_t m_size{};
     size_t m_level{};
-    mutable ::std::mt19937 m_rng{::std::random_device{}};
+    mutable ::std::mt19937 m_rng{};
 };
 
 } // namespace toolpex
