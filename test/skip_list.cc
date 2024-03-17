@@ -63,3 +63,13 @@ TEST(skip_list, subscriptor_operator)
     s[1] = 24;
     ASSERT_EQ(s[1], 24);
 }
+
+TEST(skip_list, insert_range)
+{
+    skip_list<int, int, 4> s{};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+}

@@ -268,6 +268,7 @@ public:
     size_t  level() const noexcept { return m_level; }
     bool    empty() const noexcept { return size() == 0; }
     auto&   allocator() noexcept { return m_alloc; }
+    auto    get_allocator() const { return allocator(); }
 
     iterator find(const key_type& k) noexcept
     {
@@ -316,6 +317,17 @@ public:
         return { add_node_to_list(
             update, ::std::forward<KK>(k), ::std::forward<VV>(v)
         )};
+    }
+
+    iterator insert(value_type kv)
+    {
+        return insert(::std::move(kv.first), ::std::move(kv.second));
+    }
+
+    void insert_range(::std::ranges::range auto&& r)
+    {
+        for (auto&& item : r)
+            insert(::std::forward<decltype(item)>(item));
     }
 
     void erase(const key_type& key)
