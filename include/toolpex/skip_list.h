@@ -403,7 +403,7 @@ private:
     const node* left_nearest(const key_type& k) const noexcept
     {
         const node* x = head_node_ptr();
-        for (int l = level() - 1; l >= 0; --l)
+        for (long long l = static_cast<long long>(level()) - 1; l >= 0; --l)
         {
             while (forward(x, l)->key_ptr() && m_cmp(*(forward(x, l)->key_ptr()), k))
                 x = forward(x, l);
@@ -421,7 +421,7 @@ private:
         ::std::array<node*, max_level()>& update) noexcept
     {
         node* x = head_node_ptr();
-        for (int l = level() - 1; l >= 0; --l)
+        for (long long l = static_cast<long long>(level()) - 1; l >= 0; --l)
         {
             while (forward(x, l)->key_ptr() 
                 && m_cmp(*(forward(x, l)->key_ptr()), k))
