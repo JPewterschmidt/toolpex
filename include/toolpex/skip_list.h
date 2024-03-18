@@ -8,12 +8,18 @@
 #include <random>
 #include <functional>
 #include <type_traits>
+#include "toolpex/math_ext.h"
 
 namespace toolpex
 {
 
+inline constexpr ::std::size_t skip_list_suggested_max_level(size_t approx_max_size) noexcept
+{
+    return toolpex::log2(approx_max_size);
+}
+
 template<typename Key, typename Mapped, 
-         ::std::size_t MaxLevel, 
+         ::std::size_t MaxLevel = 8, 
          typename Compare = ::std::less<Key>, 
          typename Alloc = ::std::allocator<::std::pair<Key, Mapped>>>
 requires (::std::is_nothrow_move_constructible_v<Key> 
@@ -358,6 +364,11 @@ public:
     }
 
 private:
+    size_t ideal_init_search_level() const noexcept 
+    {
+        return level();
+    }
+
     bool keys_equal(auto&& lhs, auto&& rhs)
     {
         return !m_cmp(lhs, rhs) && !m_cmp(rhs, lhs);

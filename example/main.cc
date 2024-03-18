@@ -41,9 +41,7 @@ void access_vec2(::std::vector<int>& vec)
 
 int main()
 {
-    ::std::vector ivec{ 1,2,3 };
-    access_vec(ivec);
-    access_vec2(ivec);
+    ::std::cout << toolpex::is_power_of_2(skip_list_suggested_max_level(199));
 
     return 0;
 }

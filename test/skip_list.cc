@@ -7,7 +7,7 @@ using namespace toolpex;
 
 TEST(skip_list, basic)
 {
-    skip_list<int, int, 5> s{};
+    skip_list<int, int, 16> s{};
 
     for (int i : ::std::ranges::iota_view{0, 1000})
         s.insert(i, i + 1);
@@ -28,12 +28,12 @@ TEST(skip_list, basic)
 
 TEST(skip_list, special_member_func)
 {
-    skip_list<int, int, 5> s{};
+    skip_list<int, int, 8> s{};
 
     for (int i : ::std::ranges::iota_view{0, 1000})
         s.insert(i, i + 1);
 
-    skip_list<int, int, 5> s2{};
+    skip_list<int, int, 8> s2{};
     for (int i : ::std::ranges::iota_view{0, 100})
         s2.insert(i, i + 1);
 
