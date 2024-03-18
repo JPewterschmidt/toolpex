@@ -8,12 +8,13 @@
 #include <random>
 #include <functional>
 #include <type_traits>
+#include "toolpex/concepts_and_traits.h"
 
 namespace toolpex
 {
 
 template<typename Key, typename Mapped, 
-         ::std::size_t MaxLevel, 
+         ::std::size_t MaxLevel = 8, 
          typename Compare = ::std::less<Key>, 
          typename Alloc = ::std::allocator<::std::pair<Key, Mapped>>>
 requires (::std::is_nothrow_move_constructible_v<Key> 
@@ -37,6 +38,7 @@ public:
 
     constexpr static ::std::size_t max_level() noexcept { return MaxLevel; }
     static_assert(max_level() > 0, "The constant MaxLevel must be greater than 0!");
+    static_assert(toolpex::is_power_of_2(max_level()), "The constant MaxLevel should be the power of 2!");
 
 private:
     class value_deleter
@@ -358,6 +360,11 @@ public:
     }
 
 private:
+    size_t ideal_init_search_level() const noexcept 
+    {
+        return level();
+    }
+
     bool keys_equal(auto&& lhs, auto&& rhs)
     {
         return !m_cmp(lhs, rhs) && !m_cmp(rhs, lhs);
