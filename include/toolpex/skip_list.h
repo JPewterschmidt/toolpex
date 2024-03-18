@@ -8,10 +8,15 @@
 #include <random>
 #include <functional>
 #include <type_traits>
-#include "toolpex/concepts_and_traits.h"
+#include "toolpex/math_ext.h"
 
 namespace toolpex
 {
+
+inline constexpr ::std::size_t skip_list_suggested_max_level(size_t approx_max_size) noexcept
+{
+    return toolpex::log2(approx_max_size);
+}
 
 template<typename Key, typename Mapped, 
          ::std::size_t MaxLevel = 8, 
@@ -38,7 +43,6 @@ public:
 
     constexpr static ::std::size_t max_level() noexcept { return MaxLevel; }
     static_assert(max_level() > 0, "The constant MaxLevel must be greater than 0!");
-    static_assert(toolpex::is_power_of_2(max_level()), "The constant MaxLevel should be the power of 2!");
 
 private:
     class value_deleter
