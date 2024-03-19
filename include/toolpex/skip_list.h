@@ -19,7 +19,6 @@ inline constexpr ::std::size_t skip_list_suggested_max_level(size_t approx_max_s
 }
 
 template<typename Key, typename Mapped, 
-         ::std::size_t MaxLevel = 8, 
          typename Compare = ::std::less<Key>, 
          typename Alloc = ::std::allocator<::std::pair<Key, Mapped>>>
 requires (::std::is_nothrow_move_constructible_v<Key> 
@@ -40,9 +39,6 @@ public:
     using const_pointer             = const value_type*;
     using allocator_type            = Alloc;
     using key_compare               = Compare;
-
-    constexpr static ::std::size_t max_level() noexcept { return MaxLevel; }
-    static_assert(max_level() > 0, "The constant MaxLevel must be greater than 0!");
 
 private:
     class value_deleter
@@ -70,9 +66,10 @@ private:
     class node
     {
     public:
-        node() noexcept = default;
-        node(::std::unique_ptr<value_type, value_deleter> s) noexcept 
-            : m_valp{ ::std::move(s) } 
+        node(size_t max_level) : m_forward_ptrs(max_level) {}
+        node(::std::unique_ptr<value_type, value_deleter> s, size_t max_level) noexcept 
+            : m_forward_ptrs(max_level, nullptr),
+              m_valp{ ::std::move(s) } 
         {
         }
 
@@ -95,7 +92,7 @@ private:
         bool is_end_sentinel() const noexcept { return m_forward_ptrs[0] == nullptr; }
         
     private:
-        ::std::array<node*, max_level()> m_forward_ptrs{};
+        ::std::vector<node*> m_forward_ptrs;
         ::std::unique_ptr<value_type, value_deleter> m_valp{};
     };
 
@@ -110,7 +107,7 @@ private:
             new (result) node{make_value(
                 ::std::forward<KKey>(k), 
                 ::std::forward<VValue>(v)
-            )};
+            ), max_level()};
         }
         catch (...)
         {
@@ -250,9 +247,10 @@ public:
         init();
     }
 
-    skip_list() 
-        : m_head{ ::std::make_unique<node>() }, 
-          m_end_sentinel{ ::std::make_unique<node>() }
+    skip_list(size_t maxlevel) 
+        : m_head{ ::std::make_unique<node>(maxlevel) }, 
+          m_end_sentinel{ ::std::make_unique<node>(maxlevel) }, 
+          m_max_level{ maxlevel }
     {
         init();
     }
@@ -263,7 +261,8 @@ public:
           m_alloc{ ::std::move(other.m_alloc) }, 
           m_size{ ::std::exchange(other.m_size, 0) }, 
           m_level{ ::std::exchange(other.m_level, 0) }, 
-          m_cmp{ ::std::move(other.m_cmp) }
+          m_cmp{ ::std::move(other.m_cmp) }, 
+          m_max_level{ other.max_level() }
     {
     }
 
@@ -276,11 +275,13 @@ public:
         m_size          = ::std::exchange(other.m_size, 0); 
         m_level         = ::std::exchange(other.m_level, 0);
         m_cmp           = ::std::move(other.m_cmp);
+        m_max_level     = other.max_level();
         return *this;
     }
 
     size_t  size()  const noexcept { return m_size; }
     size_t  level() const noexcept { return m_level; }
+    size_t  max_level() const noexcept { return m_max_level; }
     bool    empty() const noexcept { return size() == 0; }
     auto&   allocator() noexcept { return m_alloc; }
     auto    get_allocator() const { return allocator(); }
@@ -302,7 +303,7 @@ public:
     template<typename KK>
     reference_mapped operator[](KK&& k) noexcept
     {
-        ::std::array<node*, max_level()> update{};
+        ::std::vector<node*> update(max_level());
         node* x = next(left_nearest(k, update));
 
         if (auto* kp = x->key_ptr(); kp && keys_equal(*kp, k)) 
@@ -321,7 +322,7 @@ public:
     template<typename KK, typename VV>
     iterator insert(KK&& k, VV&& v)
     {
-        ::std::array<node*, max_level()> update{};
+        ::std::vector<node*> update(max_level());
         node* x = next(left_nearest(k, update));
         if (const auto* kp = x->key_ptr(); kp && keys_equal(*kp, k)) 
         {
@@ -347,7 +348,7 @@ public:
 
     void erase(const key_type& key)
     {
-        ::std::array<node*, max_level()> update{};
+        ::std::vector<node*> update(max_level());
         node* x = next(left_nearest(key, update));
         if (const auto* keyp = x->key_ptr(); keyp && keys_equal(*keyp, key))
         {
@@ -429,7 +430,7 @@ private:
 
     node* left_nearest(
         const key_type& k, 
-        ::std::array<node*, max_level()>& update) noexcept
+        ::std::vector<node*>& update) noexcept
     {
         node* x = head_node_ptr();
         for (long long l = static_cast<long long>(level()) - 1; l >= 0; --l)
@@ -485,6 +486,7 @@ private:
     mutable ::std::random_device m_rd;
     mutable ::std::mt19937 m_rng{m_rd()};
     key_compare             m_cmp{};
+    size_t                  m_max_level;
 };
 
 template<typename L>

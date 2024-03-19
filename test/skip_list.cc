@@ -7,7 +7,7 @@ using namespace toolpex;
 
 TEST(skip_list, basic)
 {
-    skip_list<int, int, 16> s{};
+    skip_list<int, int> s{16};
 
     for (int i : ::std::ranges::iota_view{0, 1000})
         s.insert(i, i + 1);
@@ -28,12 +28,12 @@ TEST(skip_list, basic)
 
 TEST(skip_list, special_member_func)
 {
-    skip_list<int, int, 8> s{};
+    skip_list<int, int> s{8};
 
     for (int i : ::std::ranges::iota_view{0, 1000})
         s.insert(i, i + 1);
 
-    skip_list<int, int, 8> s2{};
+    skip_list<int, int> s2{8};
     for (int i : ::std::ranges::iota_view{0, 100})
         s2.insert(i, i + 1);
 
@@ -45,7 +45,7 @@ TEST(skip_list, special_member_func)
 
 TEST(skip_list, iterator)
 {
-    skip_list<int, int, 4> s{};
+    skip_list<int, int> s{4};
 
     for (int i : ::std::ranges::iota_view{0, 100})
         s.insert(i, i + 1);
@@ -65,14 +65,14 @@ TEST(skip_list, iterator)
 
 TEST(skip_list, subscriptor_operator)
 {
-    skip_list<int, int, 4> s{};
+    skip_list<int, int> s{4};
     s[1] = 24;
     ASSERT_EQ(s[1], 24);
 }
 
 TEST(skip_list, insert_range)
 {
-    skip_list<int, int, 4> s{};
+    skip_list<int, int> s{4};
     auto r = ::std::ranges::iota_view{0, 100} 
         | ::std::ranges::views::transform([](auto&& v) noexcept { 
             return ::std::pair{ v, v + 1 }; 
@@ -82,7 +82,7 @@ TEST(skip_list, insert_range)
 
 TEST(skip_list, front_and_back)
 {
-    skip_list<int, int, 4> s{};
+    skip_list<int, int> s{4};
     auto r = ::std::ranges::iota_view{0, 100} 
         | ::std::ranges::views::transform([](auto&& v) noexcept { 
             return ::std::pair{ v, v + 1 }; 
