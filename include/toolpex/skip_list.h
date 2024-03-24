@@ -289,14 +289,14 @@ public:
     iterator find(const key_type& k) noexcept
     {
         auto* x = next(left_nearest(k));
-        if (x == end_node_ptr() || *(x->key_ptr()) != k) return { end_node_ptr() };
+        if (x == end_node_ptr() || !(*(x->key_ptr()) == k)) return { end_node_ptr() };
         return { x };
     }
 
     const_iterator find(const key_type& k) const noexcept
     {
         const auto* x = next(left_nearest(k));
-        if (x == end_node_ptr() || *(x->key_ptr()) != k) return { end_node_ptr() };
+        if (x == end_node_ptr() || !(*(x->key_ptr()) == k)) return { end_node_ptr() };
         return { x };
     }
 
