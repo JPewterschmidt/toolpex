@@ -308,7 +308,7 @@ public:
         ::std::vector<node*> update(max_level());
         node* x = next(left_nearest(k, update));
 
-        if (auto* kp = x->key_ptr(); kp && keys_equal(*kp, k)) 
+        if (auto* kp = x->key_ptr(); kp && m_eq(*kp, k)) 
             return x->value().second;
 
         return add_node_to_list(
@@ -326,7 +326,7 @@ public:
     {
         ::std::vector<node*> update(max_level());
         node* x = next(left_nearest(k, update));
-        if (const auto* kp = x->key_ptr(); kp && keys_equal(*kp, k)) 
+        if (const auto* kp = x->key_ptr(); kp && m_eq(*kp, k)) 
         {
             // Exception free. There's a constraint about nothrow_move_constructible
             x->value().second = ::std::forward<VV>(v);
@@ -352,7 +352,7 @@ public:
     {
         ::std::vector<node*> update(max_level());
         node* x = next(left_nearest(key, update));
-        if (const auto* keyp = x->key_ptr(); keyp && keys_equal(*keyp, key))
+        if (const auto* keyp = x->key_ptr(); keyp && m_eq(*keyp, key))
         {
             for (size_t i{}; i < level(); ++i)
             {
@@ -370,11 +370,6 @@ private:
     size_t ideal_init_search_level() const noexcept 
     {
         return level();
-    }
-
-    bool keys_equal(auto&& lhs, auto&& rhs)
-    {
-        return !m_cmp(lhs, rhs) && !m_cmp(rhs, lhs);
     }
 
     template<typename KK, typename VV>
