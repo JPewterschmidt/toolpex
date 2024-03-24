@@ -20,6 +20,7 @@ inline constexpr ::std::size_t skip_list_suggested_max_level(size_t approx_max_s
 
 template<typename Key, typename Mapped, 
          typename Compare = ::std::less<Key>, 
+         typename KeyEqual = ::std::equal_to<Key>,
          typename Alloc = ::std::allocator<::std::pair<Key, Mapped>>>
 requires (::std::is_nothrow_move_constructible_v<Key> 
        && ::std::is_nothrow_move_constructible_v<Mapped>)
@@ -39,6 +40,7 @@ public:
     using const_pointer             = const value_type*;
     using allocator_type            = Alloc;
     using key_compare               = Compare;
+    using key_equal                 = KeyEqual;
 
 private:
     class value_deleter
@@ -289,14 +291,14 @@ public:
     iterator find(const key_type& k) noexcept
     {
         auto* x = next(left_nearest(k));
-        if (x == end_node_ptr() || !(*(x->key_ptr()) == k)) return { end_node_ptr() };
+        if (x == end_node_ptr() || !m_eq(*x->key_ptr(), k)) return { end_node_ptr() };
         return { x };
     }
 
     const_iterator find(const key_type& k) const noexcept
     {
         const auto* x = next(left_nearest(k));
-        if (x == end_node_ptr() || !(*(x->key_ptr()) == k)) return { end_node_ptr() };
+        if (x == end_node_ptr() || !m_eq(*x->key_ptr(), k)) return { end_node_ptr() };
         return { x };
     }
 
@@ -486,6 +488,7 @@ private:
     mutable ::std::random_device m_rd;
     mutable ::std::mt19937 m_rng{m_rd()};
     key_compare             m_cmp{};
+    KeyEqual                m_eq{};
     size_t                  m_max_level;
 };
 
