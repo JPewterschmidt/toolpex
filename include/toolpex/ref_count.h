@@ -4,6 +4,7 @@
 #include "toolpex/macros.h"
 #include <atomic>
 #include <cstddef>
+#include <utility>
 
 TOOLPEX_NAMESPACE_BEG
 
@@ -37,6 +38,35 @@ public:
     
 private:
     ::std::atomic_ptrdiff_t m_count;
+};
+
+class ref_count_guard
+{
+public:
+    constexpr ref_count_guard(ref_count& r) noexcept
+        : m_cnt{ &r }
+    {
+        m_cnt->fetch_add();
+    }
+
+    constexpr ~ref_count_guard() noexcept { release(); }
+
+    ref_count_guard(ref_count_guard&& other) noexcept
+        : m_cnt{ ::std::exchange(other.m_cnt, nullptr) }
+    {
+    }
+
+    ref_count_guard& operator=(ref_count_guard&& other) noexcept
+    {
+        release();
+        m_cnt = ::std::exchange(other.m_cnt, nullptr);
+        return *this;
+    }
+
+    constexpr void release() noexcept { if (m_cnt) ::std::exchange(m_cnt, nullptr)->fetch_sub(); }
+
+private:
+    ref_count* m_cnt{};
 };
 
 TOOLPEX_NAMESPACE_END
