@@ -94,3 +94,91 @@ TEST(skip_list, front_and_back)
     s.front().second = 2;
     ASSERT_EQ(::std::as_const(s).front().second, 2);
 }
+
+TEST(skip_list, lower_bound)
+{
+    skip_list<int, int> s{4};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+
+    auto iter = s.lower_bound(99);
+    ASSERT_EQ(iter->first, 99);
+}
+
+TEST(skip_list, upper_bound)
+{
+    skip_list<int, int> s{4};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+
+    auto iter = s.upper_bound(99);
+    ASSERT_EQ(iter->first, 98);
+}
+
+TEST(skip_list, find_bigger)
+{
+    skip_list<int, int> s{4};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+
+    auto iter = s.find_bigger(99);
+    ASSERT_EQ(iter, s.end());
+    iter = s.find_bigger(1);
+    ASSERT_EQ(iter->first, 2);
+}
+
+TEST(skip_list, find_less)
+{
+    skip_list<int, int> s{4};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+
+    auto iter = s.find_less(0);
+    ASSERT_EQ(iter, s.end());
+    iter = s.find_less(2);
+    ASSERT_EQ(iter->first, 1);
+}
+
+TEST(skip_list, find_bigger_equal)
+{
+    skip_list<int, int> s{4};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+
+    auto iter = s.find_bigger_equal(99);
+    ASSERT_EQ(iter->first, 99);
+
+    iter = s.find_bigger_equal(1000);
+    ASSERT_EQ(iter, s.end());
+}
+
+TEST(skip_list, find_less_equal)
+{
+    skip_list<int, int> s{4};
+    auto r = ::std::ranges::iota_view{0, 100} 
+        | ::std::ranges::views::transform([](auto&& v) noexcept { 
+            return ::std::pair{ v, v + 1 }; 
+          });
+    s.insert_range(r);
+
+    auto iter = s.find_less_equal(0);
+    ASSERT_EQ(iter->first, 0);
+
+    iter = s.find_less_equal(-1);
+    ASSERT_EQ(iter, s.end());
+}
