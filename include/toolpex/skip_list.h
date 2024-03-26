@@ -328,7 +328,7 @@ public:
         auto* x = left_nearest(k);
         auto* nx = next(x);
         if (auto nkp = nx->key_ptr(); nkp && m_eq(*nkp, k))
-            return { nkp };
+            return { nx };
         if (x == head_node_ptr()) return { end_node_ptr() };
         return { x };
     }
