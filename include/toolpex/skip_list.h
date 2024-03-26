@@ -333,10 +333,41 @@ public:
         return { x };
     }
 
+    const_iterator upper_bound(const key_type& k) const noexcept
+    {
+        auto* x = left_nearest(k);
+        if (x == head_node_ptr()) return { end_node_ptr() };
+        return { x };
+    }
+
+    const_iterator lower_bound(const key_type& k) const noexcept
+    {
+        auto* x = left_nearest(k);
+        auto* nx = next(x);
+        if (auto nkp = nx->key_ptr(); nkp && m_eq(*nkp, k))
+            return { nx };
+        if (x == head_node_ptr()) return { end_node_ptr() };
+        return { x };
+    }
+
+    const_iterator find_bigger_equal(const key_type& k) const noexcept { return { next(left_nearest(k)) }; }
+    const_iterator find_less_equal(const key_type& k) const noexcept { return lower_bound(k); }
+    const_iterator find_less(const key_type& k) const noexcept { return upper_bound(k); }
+
     iterator find_bigger_equal(const key_type& k) noexcept { return { next(left_nearest(k)) }; }
     iterator find_less_equal(const key_type& k) noexcept { return lower_bound(k); }
     iterator find_less(const key_type& k) noexcept { return upper_bound(k); }
     iterator find_bigger(const key_type& k) noexcept
+    {
+        auto* x = next(left_nearest(k));
+        if (auto* kp = x->key_ptr(); kp && m_eq(*kp, k))
+            return next(x);
+        else if (kp) 
+            return x;
+        return end_node_ptr();
+    }
+
+    const_iterator find_bigger(const key_type& k) const noexcept
     {
         auto* x = next(left_nearest(k));
         if (auto* kp = x->key_ptr(); kp && m_eq(*kp, k))
