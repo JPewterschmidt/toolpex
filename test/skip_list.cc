@@ -106,6 +106,7 @@ TEST(skip_list, lower_bound)
 
     auto iter = s.lower_bound(99);
     ASSERT_EQ(iter->first, 99);
+    ASSERT_EQ(::std::as_const(s).lower_bound(99)->first, iter->first);
 }
 
 TEST(skip_list, upper_bound)
@@ -119,6 +120,7 @@ TEST(skip_list, upper_bound)
 
     auto iter = s.upper_bound(99);
     ASSERT_EQ(iter->first, 98);
+    ASSERT_EQ(::std::as_const(s).upper_bound(99)->first, iter->first);
 }
 
 TEST(skip_list, find_bigger)
@@ -134,6 +136,7 @@ TEST(skip_list, find_bigger)
     ASSERT_EQ(iter, s.end());
     iter = s.find_bigger(1);
     ASSERT_EQ(iter->first, 2);
+    ASSERT_EQ(::std::as_const(s).find_bigger(1)->first, iter->first);
 }
 
 TEST(skip_list, find_less)
@@ -149,6 +152,7 @@ TEST(skip_list, find_less)
     ASSERT_EQ(iter, s.end());
     iter = s.find_less(2);
     ASSERT_EQ(iter->first, 1);
+    ASSERT_EQ(::std::as_const(s).find_less(2)->first, iter->first);
 }
 
 TEST(skip_list, find_bigger_equal)
@@ -162,6 +166,7 @@ TEST(skip_list, find_bigger_equal)
 
     auto iter = s.find_bigger_equal(99);
     ASSERT_EQ(iter->first, 99);
+    ASSERT_EQ(::std::as_const(s).find_bigger_equal(99)->first, iter->first);
 
     iter = s.find_bigger_equal(1000);
     ASSERT_EQ(iter, s.end());
@@ -178,6 +183,7 @@ TEST(skip_list, find_less_equal)
 
     auto iter = s.find_less_equal(0);
     ASSERT_EQ(iter->first, 0);
+    ASSERT_EQ(::std::as_const(s).find_less_equal(0)->first, iter->first);
 
     iter = s.find_less_equal(-1);
     ASSERT_EQ(iter, s.end());
