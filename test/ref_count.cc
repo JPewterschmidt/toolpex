@@ -30,3 +30,16 @@ TEST(ref_count, basic)
     for (auto& f : fvec) f.wait();
     ASSERT_EQ(g_cnt.load(), 0);
 }
+
+TEST(ref_count, guard)
+{
+    ::std::vector<::std::future<void>> fvec;
+    for (size_t i{}; i < test_scale / 10; ++i)   
+        for (size_t j{}; j < 10; ++j)
+            fvec.emplace_back(::std::async(::std::launch::async, [&]{ 
+                [[maybe_unused]] ref_count_guard g{ g_cnt }; 
+            }));
+
+    for (auto& f : fvec) f.wait();
+    ASSERT_EQ(g_cnt.load(), 0);
+}
