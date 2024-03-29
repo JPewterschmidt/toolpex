@@ -14,6 +14,12 @@
 
 TOOLPEX_NAMESPACE_BEG
 
+/*! \brief  Perfbook's Approximate Limit Counter implementation (lock free)
+ *  \tparam ExecutionIdType A type which could represent a execution unit, like thread id or coroutine address, etc.
+ *  \tparam The underlying counter type.
+ *
+ *  \see Perfbook Chatper 5.3
+ */
 template<typename ExecutionIdType = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
 class approximate_limit_counter
 {
@@ -21,17 +27,28 @@ public:
     using execution_unit_handler = specific_counter_handler<ExecutionIdType, approximate_limit_counter>;
     
 public:
+    /*! \brief Ctor
+     *  \param  global_counter_max The maximum value of the global counter.
+     */
     constexpr approximate_limit_counter(CounterT global_counter_max) noexcept
         : m_global_counter_max{ global_counter_max }
     {
     }
 
+    /*! \brief Make a `specific_counter_handler`
+     *  \return A `specific_counter_handler`, 
+     *          which could forward all the useful counter operations to the relative object of this type, 
+     *          contains execution unit specific information.
+     */
     execution_unit_handler 
     get_specific_handler(auto execution_specific_initer) noexcept 
     { 
         return { ::std::move(execution_specific_initer), *this }; 
     }
 
+    /*! \brief Reset the counter, make it back to initial state.
+     *  \param global_counter_max a new maximum limit of the global counter. 
+     */
     void reset(CounterT global_counter_max) noexcept
     {
         ::std::lock_guard lk{ m_lock };
@@ -41,11 +58,16 @@ public:
         m_counter.clear();
     }
 
+    /*! \brief Reset the counter, make it back to initial state. */
     void reset() noexcept
     {
         return reset(m_global_counter_max);
     }
 
+    /*! \brief Increase the value of counter.
+     *  \param h the execution specific information object.
+     *  \param delta the value you want to add.
+     */
     bool add_count(const execution_unit_handler& h, CounterT delta) noexcept
     {
         auto& [cnt_max, cnt] = local_variable(h);
@@ -67,6 +89,10 @@ public:
         return true;
     }
 
+    /*! \brief Decrease the value of counter.
+     *  \param h the execution specific information object.
+     *  \param delta the value you want to subtract.
+     */
     bool sub_count(const execution_unit_handler& h, CounterT delta) noexcept
     {
         auto& [cntmax, cnt] = local_variable(h);
@@ -84,6 +110,10 @@ public:
         return true;
     }
     
+    /*! \brief  Read the counter value.
+     *  \attention  This call will access all the execution specific counter, 
+     *              which caused cache miss potentially.
+     */
     auto read_count([[maybe_unused]] const execution_unit_handler&) noexcept
     {
         ::std::lock_guard lk{ m_lock };
@@ -95,7 +125,20 @@ public:
         return sum;
     }
 
-    void count_unregister_thread(::std::thread::id tid) noexcept
+    /*! \brief Unregister the current execution unit.
+     *  
+     *  Globalize the counter.
+     *  Clean the resource the current execution unit occuiped.
+     *
+     *  \param tid Current execution unit id.
+     *  
+     *  \attention This function should be called after the use of 
+     *             this counter in each execution unit (typically thread).
+     *             Then you'd better to use a `execution_unit_handler` 
+     *             returned by `get_specific_handler()`, 
+     *             which utilze RAII to make sure this function will be called.
+     */
+    void count_unregister_execution_unit(ExecutionIdType tid) noexcept
     {
         ::std::lock_guard lk{ m_lock };
         globalize_count(tid);
@@ -117,7 +160,7 @@ private:
         return local_variable(h.tid());
     }
 
-    auto& local_variable(::std::thread::id tid) noexcept
+    auto& local_variable(ExecutionIdType tid) noexcept
     {
         if (!m_counter.contains(tid)) m_num_online.fetch_add(1, ::std::memory_order_relaxed);
         return m_counter[tid];
@@ -138,7 +181,7 @@ private:
         m_global_counter -= cnt_val;
     }
 
-    void globalize_count(::std::thread::id tid) noexcept
+    void globalize_count(ExecutionIdType tid) noexcept
     {
         auto& [cntmax, cnt] = local_variable(tid);
         m_global_counter += cnt.load(::std::memory_order_relaxed);
@@ -158,7 +201,7 @@ private:
     CounterT m_global_counter_max{};
     CounterT m_global_counter_reserve{};
     CounterT m_global_counter{};
-    ::std::unordered_map<::std::thread::id, local_variable_t> m_counter;
+    ::std::unordered_map<ExecutionIdType, local_variable_t> m_counter;
     ::std::atomic_size_t m_num_online{};
     mutable spin_lock m_lock;   
 };

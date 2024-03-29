@@ -36,7 +36,7 @@ public:
     ~specific_counter_handler() noexcept
     {
         if (!m_parent) return;
-        m_parent->count_unregister_thread(m_tid);
+        m_parent->count_unregister_execution_unit(m_tid);
     }
 
     /*! \return The execution unit indicator 
