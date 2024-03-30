@@ -20,7 +20,9 @@ TOOLPEX_NAMESPACE_BEG
  *
  *  \see Perfbook Chatper 5.3
  */
-template<typename ExecutionIdType = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
+template<
+    ::std::integral CounterT = ::std::size_t, 
+    typename ExecutionIdType = ::std::thread::id>
 class approximate_limit_counter
 {
 public:
@@ -30,8 +32,8 @@ public:
     /*! \brief Ctor
      *  \param  global_counter_max The maximum value of the global counter.
      */
-    constexpr approximate_limit_counter(CounterT global_counter_max) noexcept
-        : m_global_counter_max{ global_counter_max }
+    constexpr approximate_limit_counter(long long global_counter_max) noexcept
+        : m_global_counter_max{ static_cast<CounterT>(global_counter_max) }
     {
     }
 
