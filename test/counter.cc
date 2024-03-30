@@ -5,7 +5,7 @@ using namespace toolpex;
 
 TEST(counter, approximate_limit_counter)
 {
-    approximate_limit_counter c{10};
+    approximate_limit_counter c{1000};
     auto h = c.get_specific_handler(::std::this_thread::get_id());
 
     ASSERT_TRUE(h.add_count(8));
