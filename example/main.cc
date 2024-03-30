@@ -1,4 +1,5 @@
 #include <iomanip>
+#include <thread>
 #include <iostream>
 #include <ranges>
 #include <string_view>
@@ -15,33 +16,19 @@
 #include "toolpex/functional.h"
 #include "toolpex/in_there.h"
 #include "toolpex/skip_list.h"
+#include "toolpex/counter.h"
 
 using namespace toolpex;
 using namespace ip_address_literals;
 using namespace ::std::string_literals;
 using namespace ::std::string_view_literals;
 
-void access_vec(const ::std::vector<int>& vec)
-{
-    for (const auto item : vec)
-    {
-        ::std::cout << item << " ";
-    }
-    ::std::cout << ::std::endl;
-}
-
-void access_vec2(::std::vector<int>& vec)
-{
-    for (const auto item : vec)
-    {
-        ::std::cout << item << " ";
-    }
-    ::std::cout << ::std::endl;
-}
-
 int main()
 {
-    ::std::cout << toolpex::is_power_of_2(skip_list_suggested_max_level(199));
+    approximate_limit_counter<size_t> c{10};
+    auto h = c.get_specific_handler(::std::this_thread::get_id());
+    h.add_count(1);   
+    ::std::cout << h.read_count() << ::std::endl;
 
     return 0;
 }

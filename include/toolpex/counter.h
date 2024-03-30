@@ -20,7 +20,9 @@ TOOLPEX_NAMESPACE_BEG
  *
  *  \see Perfbook Chatper 5.3
  */
-template<typename ExecutionIdType = ::std::thread::id, ::std::integral CounterT = ::std::size_t>
+template<
+    ::std::integral CounterT = ::std::size_t, 
+    typename ExecutionIdType = ::std::thread::id>
 class approximate_limit_counter
 {
 public:
@@ -30,8 +32,8 @@ public:
     /*! \brief Ctor
      *  \param  global_counter_max The maximum value of the global counter.
      */
-    constexpr approximate_limit_counter(CounterT global_counter_max) noexcept
-        : m_global_counter_max{ global_counter_max }
+    constexpr approximate_limit_counter(long long global_counter_max) noexcept
+        : m_global_counter_max{ static_cast<CounterT>(global_counter_max) }
     {
     }
 
@@ -80,6 +82,7 @@ public:
         }
         
         ::std::lock_guard lk{ m_lock };
+        globalize_count(h);
         if (m_global_counter_max - m_global_counter - m_global_counter_reserve < delta)
         {
             return false;
@@ -170,14 +173,14 @@ private:
     {
         auto& [cntmax, cnt] = local_variable(h);
         const CounterT cntmax_val = 
-            (m_global_counter_max - m_global_counter - m_global_counter_reserve) / num_online_execution_unit();
+            (m_global_counter_max - m_global_counter - m_global_counter_reserve) / num_online_execution_units();
 
         m_global_counter_reserve += cntmax_val;
-        const CounterT cnt_val = cntmax_val / 2;
+        CounterT cnt_val = cntmax_val / 2;
         cnt.store(cnt_val, ::std::memory_order_relaxed);
         cntmax.store(cntmax_val, ::std::memory_order_relaxed);
         if (cnt_val > m_global_counter)
-            cnt.store(m_global_counter, ::std::memory_order_relaxed);
+            cnt.store(cnt_val = m_global_counter, ::std::memory_order_relaxed);
         m_global_counter -= cnt_val;
     }
 
@@ -195,7 +198,7 @@ private:
         globalize_count(h.tid());
     }
 
-    size_t num_online_execution_unit() const noexcept { return m_num_online; }
+    size_t num_online_execution_units() const noexcept { return m_num_online; }
 
 private:
     CounterT m_global_counter_max{};
