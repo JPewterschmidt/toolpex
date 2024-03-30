@@ -12,12 +12,12 @@ TEST(counter, approximate_limit_counter)
     ASSERT_TRUE(h.add_count(1));
     ASSERT_EQ(h.read_count(), 9);
 
-    ASSERT_FALSE(h.add_count(10));
+    ASSERT_FALSE(h.add_count(10000));
     ASSERT_EQ(h.read_count(), 9);
 
     c.reset();
     ASSERT_EQ(h.read_count(), 0);
-    ASSERT_EQ(c.limit(), 10);
+    ASSERT_EQ(c.limit(), 1000);
 
     c.reset(100);
     ASSERT_EQ(c.limit(), 100);
