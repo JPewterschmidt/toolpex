@@ -34,14 +34,15 @@ public:
 
     std::optional<ValueType> get(const KeyType &key) noexcept
     {
+        ::std::optional<ValueType> result{};
         auto it = m_cache_map.find(key);
         if (it != m_cache_map.end())
         {
             // Move the accessed item to the front of the list
             m_cache_list.splice(m_cache_list.begin(), m_cache_list, it->second);
-            return it->second->second;
+            return result.emplace(it->second->second);
         }
-        return {}; 
+        return result; 
     }
 
     template<std::convertible_to<KeyType>   K, 
