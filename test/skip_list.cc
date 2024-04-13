@@ -5,17 +5,53 @@
 
 using namespace toolpex;
 
-TEST(skip_list, basic)
+namespace 
 {
-    skip_list<int, int> s{16};
 
-    for (int i : ::std::ranges::iota_view{0, 1000})
-        s.insert(i, i + 1);
-    ASSERT_EQ(skip_list_debug{s}.actual_size(), s.size());
+class skip_list_test : public ::testing::Test
+{
+public:
+    skip_list_test()
+        : s(old_max_level)
+    {
+        prepare_data();
+    }
 
-    auto s2 = ::std::move(s);
+    void reset(size_t max_level, size_t max_value)
+    {
+        s = skip_list<int, int>(max_level);
+        prepare_data(max_value);
+    }
 
-    ASSERT_EQ(s.size(), 0);
+    void reset()
+    {
+        s = skip_list<int, int>(old_max_level);
+        prepare_data();
+    }
+
+    auto& list() { return s; }
+
+    void prepare_data(size_t max = 1000)
+    {
+        if (max == 0) return;
+        for (size_t i : ::std::ranges::iota_view{0ull, max})
+            list().insert(i, i + 1);
+    }
+
+private:
+    size_t old_max_level{16};
+    skip_list<int, int> s;
+};
+
+} // annoymous namespace
+
+TEST_F(skip_list_test, basic)
+{
+    ASSERT_EQ(skip_list_debug{list()}.actual_size(), list().size());
+
+    auto s2 = ::std::move(list());
+
+    ASSERT_EQ(list().size(), 0);
     ASSERT_EQ(s2.size(), 1000);
     ASSERT_EQ(s2.find(3)->second, 4);
     ASSERT_EQ(s2.find(100)->second, 101);
@@ -24,167 +60,145 @@ TEST(skip_list, basic)
 
     s2.clear();
     ASSERT_TRUE(s2.empty());
+    reset();
 }
 
-TEST(skip_list, special_member_func)
+TEST_F(skip_list_test, special_member_func)
 {
-    skip_list<int, int> s{8};
-
-    for (int i : ::std::ranges::iota_view{0, 1000})
-        s.insert(i, i + 1);
+    reset(8, 1000);
 
     skip_list<int, int> s2{8};
     for (int i : ::std::ranges::iota_view{0, 100})
         s2.insert(i, i + 1);
 
     ASSERT_EQ(s2.size(), 100);
-    s2 = ::std::move(s);
+    s2 = ::std::move(list());
     ASSERT_EQ(s2.size(), 1000);
-    ASSERT_EQ(s.size(), 0);
+    ASSERT_EQ(list().size(), 0);
 }
 
-TEST(skip_list, iterator)
+TEST_F(skip_list_test, iterator)
 {
-    skip_list<int, int> s{4};
-
-    for (int i : ::std::ranges::iota_view{0, 100})
-        s.insert(i, i + 1);
-    auto iter = s.insert(500, 10);
+    reset(4, 100);
+    auto iter = list().insert(500, 10);
     iter->second++;
-    ASSERT_EQ(s.find(500)->second, 11);
+    ASSERT_EQ(list().find(500)->second, 11);
 
-    ::std::map<int, int> imap(s.begin(), s.end());
-    ASSERT_EQ(imap.size(), s.size());
+    ::std::map<int, int> imap(list().begin(), list().end());
+    ASSERT_EQ(imap.size(), list().size());
 
-    iter = s.last();
+    iter = list().last();
     ASSERT_EQ(iter->second, 11);
     iter->second = 12;
-    auto val = ::std::as_const(s).last()->second;
+    auto val = ::std::as_const(list()).last()->second;
     ASSERT_EQ(val, 12);
 }
 
-TEST(skip_list, subscriptor_operator)
+TEST_F(skip_list_test, subscriptor_operator)
 {
-    skip_list<int, int> s{4};
-    s[1] = 24;
-    ASSERT_EQ(s[1], 24);
+    reset(4, 0);
+    list()[1] = 24;
+    ASSERT_EQ(list()[1], 24);
 }
 
-TEST(skip_list, insert_range)
+TEST_F(skip_list_test, insert_range)
 {
-    skip_list<int, int> s{4};
     auto r = ::std::ranges::iota_view{0, 100} 
         | ::std::ranges::views::transform([](auto&& v) noexcept { 
             return ::std::pair{ v, v + 1 }; 
           });
-    s.insert_range(r);
+    list().insert_range(r);
 }
 
-TEST(skip_list, front_and_back)
+TEST_F(skip_list_test, front_and_back)
 {
-    skip_list<int, int> s{4};
-    auto r = ::std::ranges::iota_view{0, 100} 
-        | ::std::ranges::views::transform([](auto&& v) noexcept { 
-            return ::std::pair{ v, v + 1 }; 
-          });
-    s.insert_range(r);
+    reset(4, 100);
 
-    ASSERT_EQ(s.front().first, 0);
-    ASSERT_EQ(s.back().first, 99);
-    s.front().second = 2;
-    ASSERT_EQ(::std::as_const(s).front().second, 2);
+    ASSERT_EQ(list().front().first, 0);
+    ASSERT_EQ(list().back().first, 99);
+    list().front().second = 2;
+    ASSERT_EQ(::std::as_const(list()).front().second, 2);
 }
 
-TEST(skip_list, lower_bound)
+TEST_F(skip_list_test, lower_bound)
 {
-    skip_list<int, int> s{4};
-    auto r = ::std::ranges::iota_view{0, 100} 
-        | ::std::ranges::views::transform([](auto&& v) noexcept { 
-            return ::std::pair{ v, v + 1 }; 
-          });
-    s.insert_range(r);
+    reset(4, 100);
 
-    auto iter = s.lower_bound(99);
+    auto iter = list().lower_bound(99);
     ASSERT_EQ(iter->first, 99);
-    ASSERT_EQ(::std::as_const(s).lower_bound(99)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).lower_bound(99)->first, iter->first);
 }
 
-TEST(skip_list, upper_bound)
+TEST_F(skip_list_test, upper_bound)
 {
-    skip_list<int, int> s{4};
-    auto r = ::std::ranges::iota_view{0, 100} 
-        | ::std::ranges::views::transform([](auto&& v) noexcept { 
-            return ::std::pair{ v, v + 1 }; 
-          });
-    s.insert_range(r);
+    reset(4, 100);
 
-    auto iter = s.upper_bound(99);
+    auto iter = list().upper_bound(99);
     ASSERT_EQ(iter->first, 98);
-    ASSERT_EQ(::std::as_const(s).upper_bound(99)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).upper_bound(99)->first, iter->first);
 }
 
-TEST(skip_list, find_bigger)
+TEST_F(skip_list_test, find_bigger)
 {
-    skip_list<int, int> s{4};
-    auto r = ::std::ranges::iota_view{0, 100} 
-        | ::std::ranges::views::transform([](auto&& v) noexcept { 
-            return ::std::pair{ v, v + 1 }; 
-          });
-    s.insert_range(r);
+    reset(4, 100);
 
-    auto iter = s.find_bigger(99);
-    ASSERT_EQ(iter, s.end());
-    iter = s.find_bigger(1);
+    auto iter = list().find_bigger(99);
+    ASSERT_EQ(iter, list().end());
+    iter = list().find_bigger(1);
     ASSERT_EQ(iter->first, 2);
-    ASSERT_EQ(::std::as_const(s).find_bigger(1)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_bigger(1)->first, iter->first);
 }
 
-TEST(skip_list, find_less)
+TEST_F(skip_list_test, find_less)
 {
-    skip_list<int, int> s{4};
-    auto r = ::std::ranges::iota_view{0, 100} 
-        | ::std::ranges::views::transform([](auto&& v) noexcept { 
-            return ::std::pair{ v, v + 1 }; 
-          });
-    s.insert_range(r);
+    reset(4, 100);
 
-    auto iter = s.find_less(0);
-    ASSERT_EQ(iter, s.end());
-    iter = s.find_less(2);
+    auto iter = list().find_less(0);
+    ASSERT_EQ(iter, list().end());
+    iter = list().find_less(2);
     ASSERT_EQ(iter->first, 1);
-    ASSERT_EQ(::std::as_const(s).find_less(2)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_less(2)->first, iter->first);
 }
 
-TEST(skip_list, find_bigger_equal)
+TEST_F(skip_list_test, find_bigger_equal)
 {
-    skip_list<int, int> s{4};
-    auto r = ::std::ranges::iota_view{0, 100} 
-        | ::std::ranges::views::transform([](auto&& v) noexcept { 
-            return ::std::pair{ v, v + 1 }; 
-          });
-    s.insert_range(r);
+    reset(4, 100);
 
-    auto iter = s.find_bigger_equal(99);
+    auto iter = list().find_bigger_equal(99);
     ASSERT_EQ(iter->first, 99);
-    ASSERT_EQ(::std::as_const(s).find_bigger_equal(99)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_bigger_equal(99)->first, iter->first);
 
-    iter = s.find_bigger_equal(1000);
-    ASSERT_EQ(iter, s.end());
+    iter = list().find_bigger_equal(1000);
+    ASSERT_EQ(iter, list().end());
 }
 
-TEST(skip_list, find_less_equal)
+TEST_F(skip_list_test, find_less_equal)
 {
-    skip_list<int, int> s{4};
-    auto r = ::std::ranges::iota_view{0, 100} 
-        | ::std::ranges::views::transform([](auto&& v) noexcept { 
-            return ::std::pair{ v, v + 1 }; 
-          });
-    s.insert_range(r);
+    reset(4, 100);
 
-    auto iter = s.find_less_equal(0);
+    auto iter = list().find_less_equal(0);
     ASSERT_EQ(iter->first, 0);
-    ASSERT_EQ(::std::as_const(s).find_less_equal(0)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_less_equal(0)->first, iter->first);
 
-    iter = s.find_less_equal(-1);
-    ASSERT_EQ(iter, s.end());
+    iter = list().find_less_equal(-1);
+    ASSERT_EQ(iter, list().end());
+}
+
+TEST_F(skip_list_test, erase_with_value)
+{
+    reset();
+    ::std::pair<int, int> kv;
+    bool success = list().erase(99, &kv);
+    ASSERT_TRUE(success);
+    ASSERT_EQ(kv.first, 99);
+    ASSERT_EQ(kv.second, 100);
+    ASSERT_FALSE(list().erase(99));
+}
+
+TEST_F(skip_list_test, erase_without_value)
+{
+    reset();
+    bool success = list().erase(99);
+    ASSERT_TRUE(success);
+    ASSERT_FALSE(list().erase(99));
 }

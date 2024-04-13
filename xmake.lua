@@ -1,6 +1,5 @@
 add_rules("mode.debug", "mode.release", "mode.asan", "mode.ubsan")
 add_requires(
-    "fmt", 
     "gflags", 
     "gtest", 
     "benchmark",
@@ -17,7 +16,6 @@ target("toolpex")
     set_languages("c++23", "c17")
     set_warnings("all", "error")
     add_files("src/*.cc")
-    add_packages("fmt")
     add_includedirs("include", {public = true})
     on_run(function (target)
         --nothing
