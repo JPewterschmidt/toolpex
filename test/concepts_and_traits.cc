@@ -70,3 +70,10 @@ TEST(concepts, std_specification_predict)
     ASSERT_TRUE(is_std_chrono_duration_or_time_point<::std::chrono::milliseconds>);
     ASSERT_TRUE(is_std_chrono_duration_or_time_point<::std::chrono::system_clock::time_point>);
 }
+
+TEST(concepts, size_as_byte)
+{
+    ASSERT_TRUE(size_as_byte<::std::byte>);
+    ASSERT_TRUE(size_as_byte<char>);
+    ASSERT_TRUE(size_as_byte<unsigned char>);
+}

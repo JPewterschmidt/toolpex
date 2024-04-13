@@ -8,6 +8,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <cstddef>
 
 #include "toolpex/macros.h"
 #include "toolpex/is_specialization_of.h"
@@ -152,6 +153,9 @@ concept std_to_string_able = requires(ToStringAble o)
 {
     ::std::to_string(o);
 };
+
+template<typename Byte>
+concept size_as_byte = sizeof(Byte) == sizeof(::std::byte);
 
 TOOLPEX_NAMESPACE_END
 
