@@ -183,3 +183,22 @@ TEST_F(skip_list_test, find_less_equal)
     iter = list().find_less_equal(-1);
     ASSERT_EQ(iter, list().end());
 }
+
+TEST_F(skip_list_test, erase_with_value)
+{
+    reset();
+    ::std::pair<int, int> kv;
+    bool success = list().erase(99, &kv);
+    ASSERT_TRUE(success);
+    ASSERT_EQ(kv.first, 99);
+    ASSERT_EQ(kv.second, 100);
+    ASSERT_FALSE(list().erase(99));
+}
+
+TEST_F(skip_list_test, erase_without_value)
+{
+    reset();
+    bool success = list().erase(99);
+    ASSERT_TRUE(success);
+    ASSERT_FALSE(list().erase(99));
+}

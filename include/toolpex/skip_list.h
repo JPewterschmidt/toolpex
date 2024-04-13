@@ -409,7 +409,7 @@ public:
             insert(::std::forward<decltype(item)>(item));
     }
 
-    void erase(const key_type& key, pointer out_val = nullptr)
+    bool erase(const key_type& key, pointer out_val = nullptr)
     {
         ::std::vector<node*> update(max_level());
         node* x = next(left_nearest(key, update));
@@ -428,7 +428,9 @@ public:
             while (level() >= 1 && (*head_node_ptr())[level()-1] == end_node_ptr())
                 -- m_level;
             -- m_size;
+            return true;
         }
+        return false;
     }
 
 private:
