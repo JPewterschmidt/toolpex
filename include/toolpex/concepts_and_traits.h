@@ -157,6 +157,18 @@ concept std_to_string_able = requires(ToStringAble o)
 template<typename Byte>
 concept size_as_byte = sizeof(Byte) == sizeof(::std::byte);
 
+template<typename Decayed_BTestable>
+struct boolean_testable_helper
+{
+    static constexpr bool value = 
+        ::std::is_pointer_v<Decayed_BTestable> || 
+        ::std::constructible_from<bool, Decayed_BTestable> ||
+        ::std::convertible_to<Decayed_BTestable, bool>;
+};
+
+template<typename BTestable>
+concept boolean_testable = boolean_testable_helper<::std::decay_t<BTestable>>::value;
+
 TOOLPEX_NAMESPACE_END
 
 #endif
