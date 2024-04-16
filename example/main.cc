@@ -25,10 +25,8 @@ using namespace ::std::string_view_literals;
 
 int main()
 {
-    approximate_limit_counter<size_t> c{10};
-    auto h = c.get_specific_handler(::std::this_thread::get_id());
-    h.add_count(1);   
-    ::std::cout << h.read_count() << ::std::endl;
+    ::std::string val = lazy_string_concater{} + ::std::string_view{::std::span<const char>{"xxx"}};
+    ::std::cout << val << ::std::endl;
 
     return 0;
 }

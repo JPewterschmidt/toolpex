@@ -77,3 +77,22 @@ TEST(concepts, size_as_byte)
     ASSERT_TRUE(size_as_byte<char>);
     ASSERT_TRUE(size_as_byte<unsigned char>);
 }
+
+TEST(concepts, boolean_testable)
+{
+    ASSERT_TRUE(boolean_testable<bool>);
+    ASSERT_TRUE(boolean_testable<void*>);
+    ASSERT_TRUE(boolean_testable<char[]>);
+    ASSERT_TRUE(boolean_testable<bool&>);
+    ASSERT_TRUE(boolean_testable<void*&>);
+
+    class foo
+    {
+    public:
+        operator bool() const noexcept { return true; }
+    };
+
+    ASSERT_TRUE(boolean_testable<foo>);
+    ASSERT_TRUE(boolean_testable<foo&>);
+    ASSERT_TRUE(boolean_testable<const foo&>);
+}
