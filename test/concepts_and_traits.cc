@@ -2,6 +2,7 @@
 #include <string>
 #include <typeinfo>
 #include <sys/time.h>
+#include <filesystem>
 
 #include "gtest/gtest.h"
 #include "toolpex/concepts_and_traits.h"
@@ -95,4 +96,22 @@ TEST(concepts, boolean_testable)
     ASSERT_TRUE(boolean_testable<foo>);
     ASSERT_TRUE(boolean_testable<foo&>);
     ASSERT_TRUE(boolean_testable<const foo&>);
+}
+
+TEST(concepts, bit_observable)
+{
+    class foo
+    {
+    public:
+        foo operator|(const foo&) const;
+        foo operator^(const foo&) const;
+        foo operator&(const foo&) const;
+    };
+
+    ASSERT_TRUE(bit_observable<int>);
+    ASSERT_TRUE(bit_observable<int&>);
+    ASSERT_TRUE(bit_observable<foo>);
+    ASSERT_TRUE(bit_observable<const foo&>);
+    ASSERT_TRUE(bit_observable<::std::filesystem::perms>);
+    ASSERT_TRUE(bit_observable<::std::filesystem::perms&>);
 }

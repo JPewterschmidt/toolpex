@@ -169,6 +169,17 @@ struct boolean_testable_helper
 template<typename BTestable>
 concept boolean_testable = boolean_testable_helper<::std::decay_t<BTestable>>::value;
 
+template<typename Decayed_BitObservable>
+concept bit_observable_helper = requires (Decayed_BitObservable b)
+{
+    { b | b } -> ::std::same_as<Decayed_BitObservable>;
+    { b & b } -> ::std::same_as<Decayed_BitObservable>;
+    { b ^ b } -> ::std::same_as<Decayed_BitObservable>;
+};
+
+template<typename BitObservable>
+concept bit_observable = bit_observable_helper<::std::decay_t<BitObservable>>;
+
 TOOLPEX_NAMESPACE_END
 
 #endif
