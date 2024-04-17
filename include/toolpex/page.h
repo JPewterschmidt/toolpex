@@ -2,8 +2,11 @@
 #define TOOLPEX_PAGE_H
 
 #include <memory>
+#include <span>
+#include <cstddef>
+#include <cstdint>
 
-template<typename Alloc>
+template<typename Alloc = ::std::allocator<char>>
 class page
 {
 public:
@@ -35,6 +38,9 @@ public:
 
         return *this;
     }
+
+    bool full() const noexcept { return capacity() - size() == 0; }
+    bool empty() const noexcept { return size() == 0; }
 
     size_t capacity() const noexcept { return m_capacity; }
     size_t size() const noexcept { return m_size; }
