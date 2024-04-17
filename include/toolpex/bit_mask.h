@@ -52,6 +52,12 @@ public:
         return contains(other.value());
     }
 
+    template<::std::integral IntT>
+    constexpr bool in(const bit_mask<IntT>& other) const noexcept
+    {
+        return other.contains(*this);
+    }
+
     constexpr operator RepT() const noexcept { return value(); }
     constexpr RepT& value() noexcept { return m_rep; }
     constexpr const RepT& value() const noexcept { return m_rep; }
