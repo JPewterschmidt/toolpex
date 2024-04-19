@@ -92,6 +92,8 @@ TEST_F(skip_list_test, iterator)
     iter->second = 12;
     auto val = ::std::as_const(list()).last()->second;
     ASSERT_EQ(val, 12);
+
+    ASSERT_TRUE((::std::ranges::range<decltype(list())>));
 }
 
 TEST_F(skip_list_test, subscriptor_operator)
