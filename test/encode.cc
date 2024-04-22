@@ -20,3 +20,12 @@ TEST(encode, big_endian)
     ASSERT_EQ(buffer[3], 0xe);
     ASSERT_EQ(buffer[2], 0x1);
 }
+
+TEST(encode, append)
+{
+    ::std::string dst;
+    append_encode_big_endian_to(270u, dst);
+    ASSERT_EQ(dst.size(), sizeof(unsigned));
+    ASSERT_EQ(dst[3], 0xe);
+    ASSERT_EQ(dst[2], 0x1);
+}
