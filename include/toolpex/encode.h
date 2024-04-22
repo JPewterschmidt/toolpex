@@ -121,6 +121,20 @@ void encode_big_endian_to(::std::integral auto i, ::std::span<uint8_t> buffer)
     encode_big_endian_to(i, ::std::as_writable_bytes(buffer));
 }
 
+void append_encode_big_endian_to(::std::integral auto i, ::std::string& dst)
+{
+    const size_t oldsz = dst.size();
+    dst.resize(oldsz + sizeof(i), 0);
+    encode_big_endian_to(i, {dst.data() + oldsz, sizeof(i)});
+}
+
+void append_encode_little_endian_to(::std::integral auto i, ::std::string& dst)
+{
+    const size_t oldsz = dst.size();
+    dst.resize(oldsz + sizeof(i), 0);
+    encode_little_endian_to(i, {dst.data() + oldsz, sizeof(i)});
+}
+
 } // namespace toolpex
 
 #endif
