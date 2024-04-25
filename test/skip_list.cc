@@ -33,8 +33,11 @@ public:
 
     void prepare_data(size_t max = 1000)
     {
+        assert(max > 50);
         if (max == 0) return;
-        for (size_t i : ::std::ranges::iota_view{0ull, max})
+        for (size_t i : ::std::ranges::iota_view{50ull, max})
+            list().insert(i, i + 1);
+        for (size_t i : ::std::ranges::iota_view{0ull, 50ull})
             list().insert(i, i + 1);
     }
 
@@ -98,7 +101,7 @@ TEST_F(skip_list_test, iterator)
 
 TEST_F(skip_list_test, subscriptor_operator)
 {
-    reset(4, 0);
+    reset(4, 60);
     list()[1] = 24;
     ASSERT_EQ(list()[1], 24);
 }
@@ -203,4 +206,15 @@ TEST_F(skip_list_test, erase_without_value)
     bool success = list().erase(99);
     ASSERT_TRUE(success);
     ASSERT_FALSE(list().erase(99));
+}
+
+TEST_F(skip_list_test, ordered_test)
+{
+    reset();
+    ASSERT_TRUE(::std::is_sorted(
+        list().begin(), list().end(), 
+        [](const auto& lhs, const auto& rhs) { 
+            return lhs.first < rhs.first; 
+        }
+    ));
 }
