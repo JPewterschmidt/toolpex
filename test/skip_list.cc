@@ -37,8 +37,11 @@ public:
         if (max == 0) return;
         for (size_t i : ::std::ranges::iota_view{50ull, max})
             list().insert(i, i + 1);
-        for (size_t i : ::std::ranges::iota_view{0ull, 50ull})
-            list().insert(i, i + 1);
+
+        for (int i = 49; i >= 0; --i)
+        {
+            list().insert((size_t)i, (size_t)(i + 1));
+        }
     }
 
 private:
