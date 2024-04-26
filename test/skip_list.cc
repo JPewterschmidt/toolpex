@@ -1,9 +1,13 @@
 #include "gtest/gtest.h"
+
 #include "toolpex/skip_list.h"
+
+#include <algorithm>
 #include <ranges>
 #include <map>
 
 using namespace toolpex;
+namespace rv = ::std::ranges::views;
 
 namespace 
 {
@@ -19,34 +23,49 @@ public:
 
     void reset(size_t max_level, size_t max_value)
     {
-        s = skip_list<int, int>(max_level);
+        s = skip_list<long long, long long>(max_level);
         prepare_data(max_value);
     }
 
     void reset()
     {
-        s = skip_list<int, int>(old_max_level);
+        s = skip_list<long long, long long>(old_max_level);
         prepare_data();
     }
 
     auto& list() { return s; }
 
-    void prepare_data(size_t max = 1000)
+    void prepare_data(long long max = 1000)
     {
         assert(max > 50);
-        if (max == 0) return;
-        for (size_t i : ::std::ranges::iota_view{50ull, max})
+        for (long long i : ::std::ranges::iota_view{50, max})
             list().insert(i, i + 1);
 
         for (int i = 49; i >= 0; --i)
         {
-            list().insert((size_t)i, (size_t)(i + 1));
+            list().insert((long long)i, (long long)(i + 1));
         }
     }
 
+    auto make_vec_as_pd(long long max = 1000)
+    {
+        ::std::vector<::std::pair<long long, long long>> result;
+        assert(max > 50);
+        for (long long i : ::std::ranges::iota_view{50, max})
+            list().insert(i, i + 1);
+
+        for (int i = 49; i >= 0; --i)
+        {
+            result.emplace_back((long long)i, (long long)(i + 1));
+        }
+
+        ::std::sort(result.begin(), result.end());
+        return result;
+    }
+
 private:
-    size_t old_max_level{16};
-    skip_list<int, int> s;
+    long long old_max_level{16};
+    skip_list<long long, long long> s;
 };
 
 } // annoymous namespace
@@ -73,7 +92,7 @@ TEST_F(skip_list_test, special_member_func)
 {
     reset(8, 1000);
 
-    skip_list<int, int> s2{8};
+    skip_list<long long, long long> s2{8};
     for (int i : ::std::ranges::iota_view{0, 100})
         s2.insert(i, i + 1);
 
@@ -90,7 +109,7 @@ TEST_F(skip_list_test, iterator)
     iter->second++;
     ASSERT_EQ(list().find(500)->second, 11);
 
-    ::std::map<int, int> imap(list().begin(), list().end());
+    ::std::map<long long, long long> imap(list().begin(), list().end());
     ASSERT_EQ(imap.size(), list().size());
 
     iter = list().last();
@@ -195,7 +214,7 @@ TEST_F(skip_list_test, find_less_equal)
 TEST_F(skip_list_test, erase_with_value)
 {
     reset();
-    ::std::pair<int, int> kv;
+    ::std::pair<long long, long long> kv;
     bool success = list().erase(99, &kv);
     ASSERT_TRUE(success);
     ASSERT_EQ(kv.first, 99);
@@ -220,4 +239,19 @@ TEST_F(skip_list_test, ordered_test)
             return lhs.first < rhs.first; 
         }
     ));
+}
+
+TEST_F(skip_list_test, correctness)
+{
+    reset();
+    prepare_data();
+    auto vec = make_vec_as_pd();
+    auto& l = list();
+    ASSERT_TRUE(::std::ranges::is_sorted(l));
+    ASSERT_TRUE(::std::ranges::is_sorted(vec));
+
+    for (auto [lhs, rhs] : rv::zip(l, vec))
+    {
+        ASSERT_EQ(lhs, rhs);
+    }
 }

@@ -25,8 +25,12 @@ using namespace ::std::string_view_literals;
 
 int main()
 {
-    ::std::string val = lazy_string_concater{} + ::std::string_view{::std::span<const char>{"xxx"}};
-    ::std::cout << val << ::std::endl;
-
+    ::std::vector svec{ "abc"s, "xxxx"s, "123"s, "456"s, "1"s, "10"s, "20"s, "11"s };
+    ::std::sort(svec.begin(), svec.end());
+    for (const auto & item : svec)
+    {
+        ::std::cout << item << ::std::endl;   
+    }
+    ::std::cout << ::std::boolalpha << ::std::is_sorted(svec.begin(), svec.end()) << ::std::endl;
     return 0;
 }
