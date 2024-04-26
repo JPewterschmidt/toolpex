@@ -8,11 +8,11 @@ TEST(page, basic)
     ASSERT_EQ(p.capacity(), 4096);
 
     auto pp = p.next_writable();
-    for (size_t i{}; i < 4098; ++i)
+    for (size_t i{}; i < 4096; ++i)
     {
         pp[i] = (::std::byte)1;
     }
-    p.commit_write(4098);
+    p.commit_write(4096);
     
-    ASSERT_EQ(p.size(), 4098);
+    ASSERT_EQ(p.size(), 4096);
 }
