@@ -45,6 +45,7 @@ public:
     unique_posix_fd& operator=(const unique_posix_fd&) = delete;
 
     operator int() const noexcept { return m_fd; }
+    operator bool() const noexcept { return m_fd != 0; }
 
     void close() noexcept
     {
