@@ -165,55 +165,55 @@ TEST_F(skip_list_test, upper_bound)
     ASSERT_EQ(::std::as_const(list()).upper_bound(99)->first, iter->first);
 }
 
-TEST_F(skip_list_test, find_bigger)
+TEST_F(skip_list_test, find_first_bigger)
 {
     reset(4, 100);
 
-    auto iter = list().find_bigger(99);
+    auto iter = list().find_first_bigger(99);
     ASSERT_EQ(iter, list().end());
-    iter = list().find_bigger(1);
+    iter = list().find_first_bigger(1);
     ASSERT_EQ(iter->first, 2);
-    ASSERT_EQ(::std::as_const(list()).find_bigger(1)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_first_bigger(1)->first, iter->first);
 }
 
-TEST_F(skip_list_test, find_less)
+TEST_F(skip_list_test, find_last_less)
 {
     reset(4, 100);
 
-    auto iter = list().find_less(0);
+    auto iter = list().find_last_less(0);
     ASSERT_EQ(iter, list().end());
-    iter = list().find_less(3);
+    iter = list().find_last_less(3);
     ASSERT_EQ(iter->first, 2);
-    ASSERT_EQ(::std::as_const(list()).find_less(3)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_last_less(3)->first, iter->first);
 }
 
-TEST_F(skip_list_test, find_bigger_equal)
+TEST_F(skip_list_test, find_first_bigger_equal)
 {
     reset(4, 100);
 
-    auto iter = list().find_bigger_equal(99);
+    auto iter = list().find_first_bigger_equal(99);
     ASSERT_EQ(iter->first, 99);
-    ASSERT_EQ(::std::as_const(list()).find_bigger_equal(99)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_first_bigger_equal(99)->first, iter->first);
 
-    iter = list().find_bigger_equal(1000);
+    iter = list().find_first_bigger_equal(1000);
     ASSERT_EQ(iter, list().end());
 }
 
-TEST_F(skip_list_test, find_less_equal)
+TEST_F(skip_list_test, find_last_less_equal)
 {
     reset(4, 100);
 
-    auto iter = list().find_less_equal(0);
+    auto iter = list().find_last_less_equal(0);
     ASSERT_EQ(iter->first, 0);
-    ASSERT_EQ(::std::as_const(list()).find_less_equal(0)->first, iter->first);
+    ASSERT_EQ(::std::as_const(list()).find_last_less_equal(0)->first, iter->first);
 
-    iter = list().find_less_equal(-1);
+    iter = list().find_last_less_equal(-1);
     ASSERT_EQ(iter, list().end());
     
-    iter = list().find_less_equal(20);
+    iter = list().find_last_less_equal(20);
     ASSERT_EQ(iter->first, 20);
 
-    iter = list().find_less_equal(100);
+    iter = list().find_last_less_equal(100);
     ASSERT_EQ(iter->first, 99) << "iter->first == " << iter->first;
 }
 
