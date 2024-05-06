@@ -182,9 +182,9 @@ TEST_F(skip_list_test, find_less)
 
     auto iter = list().find_less(0);
     ASSERT_EQ(iter, list().end());
-    iter = list().find_less(2);
-    ASSERT_EQ(iter->first, 1);
-    ASSERT_EQ(::std::as_const(list()).find_less(2)->first, iter->first);
+    iter = list().find_less(3);
+    ASSERT_EQ(iter->first, 2);
+    ASSERT_EQ(::std::as_const(list()).find_less(3)->first, iter->first);
 }
 
 TEST_F(skip_list_test, find_bigger_equal)
@@ -209,6 +209,12 @@ TEST_F(skip_list_test, find_less_equal)
 
     iter = list().find_less_equal(-1);
     ASSERT_EQ(iter, list().end());
+    
+    iter = list().find_less_equal(20);
+    ASSERT_EQ(iter->first, 20);
+
+    iter = list().find_less_equal(100);
+    ASSERT_EQ(iter->first, 99) << "iter->first == " << iter->first;
 }
 
 TEST_F(skip_list_test, erase_with_value)
