@@ -3,7 +3,8 @@ add_requires(
     "gflags", 
     "gtest", 
     "benchmark",
-    "concurrentqueue master"
+    "concurrentqueue master", 
+    "libuuid"
 )
 set_policy("build.warning", true)
 if is_mode("debug") then
@@ -15,6 +16,7 @@ target("toolpex")
     set_kind("shared")
     set_languages("c++23", "c17")
     set_warnings("all", "error")
+    add_packages("libuuid")
     add_files("src/*.cc")
     add_includedirs("include", {public = true})
     on_run(function (target)
