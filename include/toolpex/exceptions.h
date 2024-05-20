@@ -12,6 +12,7 @@
 #include <string>
 #include <format>
 #include <iostream>
+#include <stacktrace>
 
 #include "toolpex/macros.h"
 
@@ -22,7 +23,7 @@ TOOLPEX_NAMESPACE_BEG
     auto str = std::format("This functionality is not implemented! "
                            "msg: {}, location: {} :{}, function signature: {}.",
                            msg, sl.file_name(), sl.line(), sl.function_name());
-    ::std::cerr << str << ::std::endl;
+    ::std::cerr << str << "\n" << ::std::stacktrace::current() << ::std::endl;
     ::quick_exit(1);
 }
 

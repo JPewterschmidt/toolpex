@@ -12,6 +12,8 @@ if is_mode("debug") then
     set_optimize("none", {force = true})
 end
 
+add_syslinks("stdc++exp")
+
 target("toolpex")
     set_kind("shared")
     set_languages("c++23", "c17")

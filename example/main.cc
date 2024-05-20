@@ -17,20 +17,20 @@
 #include "toolpex/in_there.h"
 #include "toolpex/skip_list.h"
 #include "toolpex/counter.h"
+#include "toolpex/assert.h"
 
 using namespace toolpex;
 using namespace ip_address_literals;
 using namespace ::std::string_literals;
 using namespace ::std::string_view_literals;
 
+void not_implemente_test()
+{
+    toolpex_assert(false);
+}
+
 int main()
 {
-    ::std::vector svec{ "abc"s, "xxxx"s, "123"s, "456"s, "1"s, "10"s, "20"s, "11"s };
-    ::std::sort(svec.begin(), svec.end());
-    for (const auto & item : svec)
-    {
-        ::std::cout << item << ::std::endl;   
-    }
-    ::std::cout << ::std::boolalpha << ::std::is_sorted(svec.begin(), svec.end()) << ::std::endl;
+    not_implemente_test();
     return 0;
 }
