@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "toolpex/skip_list.h"
+#include "toolpex/assert.h"
 
 #include <algorithm>
 #include <ranges>
@@ -37,7 +38,7 @@ public:
 
     void prepare_data(long long max = 1000)
     {
-        assert(max > 50);
+        toolpex_assert(max > 50);
         for (long long i : ::std::ranges::iota_view{50, max})
             list().insert(i, i + 1);
 
@@ -50,7 +51,7 @@ public:
     auto make_vec_as_pd(long long max = 1000)
     {
         ::std::vector<::std::pair<long long, long long>> result;
-        assert(max > 50);
+        toolpex_assert(max > 50);
         for (long long i : ::std::ranges::iota_view{50, max})
             list().insert(i, i + 1);
 

@@ -1,5 +1,6 @@
 #include "toolpex/ipaddress.h"
 #include "toolpex/exceptions.h"
+#include "toolpex/assert.h"
 #include <format>
 #include <sstream>
 #include <arpa/inet.h>
@@ -8,7 +9,6 @@
 #include <vector>
 #include <sys/socket.h>
 #include "toolpex/errret_thrower.h"
-#include <cassert>
 #include <netdb.h>
 
 template class ::std::shared_ptr<toolpex::ip_address>;
@@ -27,7 +27,7 @@ namespace ip_address_literals
 ::std::ostream& 
 operator<<(::std::ostream& os, ip_address::ptr addr)
 {
-    assert(!!addr);
+    toolpex_assert(!!addr);
     return os << addr->to_string();
 }
 
