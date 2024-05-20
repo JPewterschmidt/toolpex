@@ -17,6 +17,7 @@
 #include "toolpex/in_there.h"
 #include "toolpex/skip_list.h"
 #include "toolpex/counter.h"
+#include "toolpex/assert.h"
 
 using namespace toolpex;
 using namespace ip_address_literals;
@@ -25,7 +26,7 @@ using namespace ::std::string_view_literals;
 
 void not_implemente_test()
 {
-    toolpex::not_implemented();
+    toolpex_assert(false);
 }
 
 int main()
