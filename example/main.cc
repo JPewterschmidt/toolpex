@@ -23,14 +23,13 @@ using namespace ip_address_literals;
 using namespace ::std::string_literals;
 using namespace ::std::string_view_literals;
 
+void not_implemente_test()
+{
+    toolpex::not_implemented();
+}
+
 int main()
 {
-    ::std::vector svec{ "abc"s, "xxxx"s, "123"s, "456"s, "1"s, "10"s, "20"s, "11"s };
-    ::std::sort(svec.begin(), svec.end());
-    for (const auto & item : svec)
-    {
-        ::std::cout << item << ::std::endl;   
-    }
-    ::std::cout << ::std::boolalpha << ::std::is_sorted(svec.begin(), svec.end()) << ::std::endl;
+    not_implemente_test();
     return 0;
 }
