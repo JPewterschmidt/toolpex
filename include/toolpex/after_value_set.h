@@ -6,7 +6,8 @@
 #include <type_traits>
 #include <utility>
 #include <stdexcept>
-#include <cassert>
+
+#include "toolpex/assert.h"
 
 namespace toolpex
 {
@@ -47,7 +48,7 @@ public:
 
     void set_callback(callback_function cb) noexcept
     {
-        assert(!m_cb);
+        toolpex_assert(!m_cb);
         m_cb = ::std::move(cb);
     }
 

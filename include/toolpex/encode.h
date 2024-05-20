@@ -4,11 +4,12 @@
 #include <bit>
 #include <span>
 #include <string>
-#include <cassert>
 #include <concepts>
 #include <cstring>
 #include <cstddef>
 #include <cstdint>
+
+#include "toolpex/assert.h" 
 
 namespace toolpex
 {
@@ -16,7 +17,7 @@ namespace toolpex
 template<::std::integral Int>
 Int decode_big_endian_from(::std::span<const ::std::byte> buffer)
 {
-    assert(buffer.size() >= sizeof(Int));
+    toolpex_assert(buffer.size() >= sizeof(Int));
     Int result{};
     ::std::memcpy(&result, buffer.data(), sizeof(Int));
     
@@ -30,14 +31,14 @@ Int decode_big_endian_from(::std::span<const ::std::byte> buffer)
     }
     else // Not support mixed endian
     {
-        assert(false);
+        toolpex_assert(false);
         return {};
     }
 }
 
 void encode_big_endian_to(::std::integral auto i, ::std::span<::std::byte> buffer)
 {
-    assert(buffer.size() >= sizeof(i));
+    toolpex_assert(buffer.size() >= sizeof(i));
     if constexpr (::std::endian::native == ::std::endian::little)
     {
         i = ::std::byteswap(i);
@@ -48,7 +49,7 @@ void encode_big_endian_to(::std::integral auto i, ::std::span<::std::byte> buffe
 template<::std::integral Int>
 Int decode_little_endian_from(::std::span<const ::std::byte> buffer)
 {
-    assert(buffer.size() >= sizeof(Int));
+    toolpex_assert(buffer.size() >= sizeof(Int));
     Int result{};
     ::std::memcpy(&result, buffer.data(), sizeof(Int));
     
@@ -62,14 +63,14 @@ Int decode_little_endian_from(::std::span<const ::std::byte> buffer)
     }
     else // Not support mixed endian
     {
-        assert(false);
+        toolpex_assert(false);
         return {};
     }
 }
 
 void encode_little_endian_to(::std::integral auto i, ::std::span<::std::byte> buffer)
 {
-    assert(buffer.size() >= sizeof(i));
+    toolpex_assert(buffer.size() >= sizeof(i));
     if constexpr (::std::endian::native == ::std::endian::big)
     {
         i = ::std::byteswap(i);

@@ -1,7 +1,6 @@
 #ifndef TOOLPEX_LRU_CACHE_H
 #define TOOLPEX_LRU_CACHE_H
 
-#include "toolpex/macros.h"
 #include <unordered_map>
 #include <concepts>
 #include <functional>
@@ -11,7 +10,9 @@
 #include <optional>
 #include <queue>
 #include <list>
-#include <cassert>
+
+#include "toolpex/macros.h"
+#include "toolpex/assert.h"
 
 TOOLPEX_NAMESPACE_BEG
 
@@ -74,7 +75,7 @@ private:
     void evict_if_needed() noexcept
     {
         if (m_cache_map.size() < m_capacity) return;
-        assert(!m_cache_list.empty());
+        toolpex_assert(!m_cache_list.empty());
 
         KeyType last_key = m_cache_list.back().first;
         m_cache_map.erase(last_key);
