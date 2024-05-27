@@ -1,4 +1,5 @@
 #include "toolpex/assert.h"
+#include <signal.h>
 #include <cstdio>
 #include <print>
 #include <stacktrace>
@@ -10,6 +11,7 @@ namespace toolpex
     {
         ::std::print(stderr, "Assertion failed: {}\n{}", expr, ::std::stacktrace::current());
         // We still want gdb could stop here, since sort of ::std::break_point are not supported yet.
-        assert(false);
+        ::raise(SIGINT);
+        ::quick_exit(1);
     }
 } // namespace toolpex
