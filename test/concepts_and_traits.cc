@@ -8,6 +8,7 @@
 #include "toolpex/concepts_and_traits.h"
 
 using namespace toolpex;
+using namespace ::std::placeholders;
 
 namespace 
 {
@@ -22,8 +23,7 @@ namespace
         constexpr void operator()(int, int) const noexcept {}
     };
 
-    // TODO
-    //auto dummy6 = ::std::bind(dummy1, 1);
+    static auto dummy6 = ::std::bind(dummy1, 1, _2, _3);
     
     ::std::function<double()> dummy7;
     double dummy8() { return 1.0; }
@@ -36,8 +36,10 @@ TEST(concepts, number_of_parameters)
     ASSERT_EQ(int(toolpex::number_of_parameters_v<decltype(dummy2)>), 2);
     ASSERT_EQ(int(toolpex::number_of_parameters_v<decltype(dummy3)>), 0);
     ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy4)>, 3);
+
     // TODO
     //ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy5_t::operator())>, 2);
+    //ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy6)>, 2);
 }
 
 TEST(concepts, get_return_type)
