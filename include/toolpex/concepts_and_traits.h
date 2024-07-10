@@ -18,10 +18,17 @@ TOOLPEX_NAMESPACE_BEG
 template<typename Functor>
 struct number_of_parameters
 {
+    // Not support functor returned form `std::bind`, or lambda.
 };
 
 template<typename Ret, typename... Args>
 struct number_of_parameters<Ret(Args...)>
+{
+    static constexpr size_t value = sizeof...(Args);
+};
+
+template<typename Ret, typename... Args>
+struct number_of_parameters<Ret(Args...) noexcept>
 {
     static constexpr size_t value = sizeof...(Args);
 };
@@ -33,13 +40,49 @@ struct number_of_parameters<::std::function<Ret(Args...)>>
 };
 
 template<typename Ret, typename... Args>
+struct number_of_parameters<::std::function<Ret(Args...) noexcept>>
+{
+    static constexpr size_t value = sizeof...(Args);
+};
+
+template<typename Ret, typename... Args>
 struct number_of_parameters<Ret(*)(Args...)>
 {
     static constexpr size_t value = sizeof...(Args);
 };
 
+template<typename Ret, typename... Args>
+struct number_of_parameters<Ret(*)(Args...) noexcept>
+{
+    static constexpr size_t value = sizeof...(Args);
+};
+
+template<typename Ret, typename Class, typename... Args>
+struct number_of_parameters<Ret(Class::*)(Args...)>
+{
+    static constexpr size_t value = sizeof...(Args);
+};
+
+template<typename Ret, typename Class, typename... Args>
+struct number_of_parameters<Ret(Class::*)(Args...) const>
+{
+    static constexpr size_t value = sizeof...(Args);
+};
+
+template<typename Ret, typename Class, typename... Args>
+struct number_of_parameters<Ret(Class::*)(Args...) noexcept>
+{
+    static constexpr size_t value = sizeof...(Args);
+};
+
+template<typename Ret, typename Class, typename... Args>
+struct number_of_parameters<Ret(Class::*)(Args...) const noexcept>
+{
+    static constexpr size_t value = sizeof...(Args);
+};
+
 template<typename Functor>
-constexpr size_t number_of_parameters_v = number_of_parameters<Functor>::value;
+constexpr size_t number_of_parameters_v = number_of_parameters<::std::remove_cvref_t<Functor>>::value;
 
 template<typename Duration>
 concept is_std_chrono_duration = toolpex::is_specialization_of<Duration, ::std::chrono::duration>;

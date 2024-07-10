@@ -8,11 +8,12 @@
 #include "toolpex/concepts_and_traits.h"
 
 using namespace toolpex;
+using namespace ::std::placeholders;
 
 namespace 
 {
     void dummy1(int, double, int){}
-    void dummy2(double, int){}
+    void dummy2(double, int) noexcept {}
     void dummy3(){}
 
     ::std::function<void(int, int, int)> dummy4;
@@ -22,12 +23,10 @@ namespace
         constexpr void operator()(int, int) const noexcept {}
     };
 
-    // TODO
-    //auto dummy6 = ::std::bind(dummy1, 1);
-    
-    ::std::function<double()> dummy7;
+    ::std::function<double(const int&, double) noexcept> dummy7;
     double dummy8() { return 1.0; }
     double dummy9() noexcept { return 1.0; }
+    double dummy10(const int&) noexcept { return 1.0; }
 }
 
 TEST(concepts, number_of_parameters)
@@ -36,8 +35,10 @@ TEST(concepts, number_of_parameters)
     ASSERT_EQ(int(toolpex::number_of_parameters_v<decltype(dummy2)>), 2);
     ASSERT_EQ(int(toolpex::number_of_parameters_v<decltype(dummy3)>), 0);
     ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy4)>, 3);
-    // TODO
-    //ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy5_t::operator())>, 2);
+
+    ASSERT_EQ(toolpex::number_of_parameters_v<decltype(&dummy5_t::operator())>, 2);
+    //ASSERT_EQ(toolpex::number_of_parameters_v<decltype(::std::function<double(const int&, double) noexcept>)>, 2);
+    ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy10)>, 1);
 }
 
 TEST(concepts, get_return_type)
