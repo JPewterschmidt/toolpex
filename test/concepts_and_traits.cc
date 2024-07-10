@@ -36,7 +36,6 @@ TEST(concepts, number_of_parameters)
     ASSERT_EQ(int(toolpex::number_of_parameters_v<decltype(dummy3)>), 0);
     ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy4)>, 3);
 
-    // TODO
     ASSERT_EQ(toolpex::number_of_parameters_v<decltype(&dummy5_t::operator())>, 2);
     //ASSERT_EQ(toolpex::number_of_parameters_v<decltype(::std::function<double(const int&, double) noexcept>)>, 2);
     ASSERT_EQ(toolpex::number_of_parameters_v<decltype(dummy10)>, 1);
