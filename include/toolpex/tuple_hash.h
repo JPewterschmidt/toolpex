@@ -1,3 +1,8 @@
+// This file is part of Toolpex
+// https://github.com/JPewterschmidt/toolpex
+//
+// Copyleft 2023 - 2024, ShiXin Wang. All wrongs reserved.
+
 #ifndef TOOLPEX_TUPLE_HASH_H
 #define TOOLPEX_TUPLE_HASH_H
 
