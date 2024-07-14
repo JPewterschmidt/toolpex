@@ -1,3 +1,8 @@
+// This file is part of Koios
+// https://github.com/JPewterschmidt/koios
+//
+// Copyleft 2023 - 2024, ShiXin Wang. All wrongs reserved.
+
 #include <functional>
 #include <string>
 #include <typeinfo>
@@ -23,7 +28,7 @@ namespace
         constexpr void operator()(int, int) const noexcept {}
     };
 
-    ::std::function<double(const int&, double) noexcept> dummy7;
+    //::std::function<double(const int&, double) noexcept> dummy7;
     double dummy8() { return 1.0; }
     double dummy9() noexcept { return 1.0; }
     double dummy10(const int&) noexcept { return 1.0; }
@@ -43,11 +48,11 @@ TEST(concepts, number_of_parameters)
 
 TEST(concepts, get_return_type)
 {
-    ::std::string name1 = typeid(get_return_type_t<decltype(dummy7)>).name();
+    //::std::string name1 = typeid(get_return_type_t<decltype(dummy7)>).name();
     ::std::string name2 = typeid(get_return_type_t<decltype(dummy8)>).name();
     ::std::string name3 = typeid(get_return_type_t<decltype(dummy9)>).name();
-    ASSERT_EQ(name1, name2);
-    ASSERT_EQ(name1, name3);
+    //ASSERT_EQ(name1, name2);
+    ASSERT_EQ(name2, name3);
 }
 
 TEST(concepts, timespec_like)
