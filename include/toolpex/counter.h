@@ -1,3 +1,8 @@
+// This file is part of Koios
+// https://github.com/JPewterschmidt/koios
+//
+// Copyleft 2023 - 2024, ShiXin Wang. All wrongs reserved.
+
 // This idea coms from **perfbook** Chapter 5, 
 // code simply copyed from perfbook example.
 // https://github.com/paulmckrcu/perfbook

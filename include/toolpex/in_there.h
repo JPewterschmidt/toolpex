@@ -1,3 +1,8 @@
+// This file is part of Koios
+// https://github.com/JPewterschmidt/koios
+//
+// Copyleft 2023 - 2024, ShiXin Wang. All wrongs reserved.
+
 #ifndef TOOLPEX_IN_THERE_H
 #define TOOLPEX_IN_THERE_H
 
