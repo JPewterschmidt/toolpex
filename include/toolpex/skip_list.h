@@ -254,9 +254,10 @@ public:
         init();
     }
 
-    skip_list(size_t maxlevel) 
+    skip_list(size_t maxlevel, const allocator_type& alloc = {}) 
         : m_head{ ::std::make_unique<node>(maxlevel) }, 
           m_end_sentinel{ ::std::make_unique<node>(maxlevel) }, 
+          m_alloc{ alloc },
           m_max_level{ maxlevel }
     {
         init();
