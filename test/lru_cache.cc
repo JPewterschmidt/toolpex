@@ -61,3 +61,14 @@ TEST(lru_cache_test, special_member_func)
     ASSERT_EQ(copied.size(), new_cache.size());
     ASSERT_NE(new_cache.size(), 0);
 }
+
+TEST(lru_cache_test, clear)
+{
+    lru_cache<int, int> cache(10);
+    for (int i{}; i < 5; ++i)
+        cache.put(i, i * 2);
+
+    ASSERT_EQ(cache.size(), 5);
+    cache.clear();
+    ASSERT_EQ(cache.size(), 0);
+}
