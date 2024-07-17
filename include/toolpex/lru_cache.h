@@ -75,6 +75,12 @@ public:
 
     size_t capacity() const noexcept { return m_capacity; }
     size_t size()     const noexcept { return m_cache_map.size(); }
+    
+    void clear() noexcept
+    {
+        m_cache_map = {};
+        m_cache_list = {};
+    }
 
 private:
     void evict_if_needed() noexcept
