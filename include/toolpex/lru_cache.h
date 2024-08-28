@@ -38,6 +38,11 @@ public:
         }
     }
 
+    bool contains(const KeyType& key) const noexcept
+    {
+        return m_cache_map.contains(key);
+    }
+
     std::optional<ValueType> get(const KeyType &key) noexcept
     {
         ::std::optional<ValueType> result{};
@@ -88,7 +93,7 @@ private:
         if (m_cache_map.size() < m_capacity) return;
         toolpex_assert(!m_cache_list.empty());
 
-        KeyType last_key = m_cache_list.back().first;
+        const KeyType& last_key = m_cache_list.back().first;
         m_cache_map.erase(last_key);
         m_cache_list.pop_back();
     }
