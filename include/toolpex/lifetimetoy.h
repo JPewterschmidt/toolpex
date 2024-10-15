@@ -11,32 +11,37 @@ namespace toolpex
 class lifetimetoy
 {
 public:
-    explicit lifetimetoy(int i) : m_marker{ i } {};
+    explicit lifetimetoy(int i, bool enable_print = false) 
+        : m_marker{ i }, 
+          m_enable_print{ enable_print }
+    {
+    }
+
     ~lifetimetoy() noexcept { m_destruction_canary = 123456; }
 
     lifetimetoy(lifetimetoy&& other) noexcept
         : m_marker{ other.visit() }
     {
-        ::std::cerr << "lifetimetoy move ctor" << ::std::endl;
+        if (m_enable_print) ::std::cerr << "lifetimetoy move ctor" << ::std::endl;
     }
 
     lifetimetoy(const lifetimetoy& other) noexcept
         : m_marker{ other.visit() }
     {
-        ::std::cerr << "lifetimetoy copy ctor" << ::std::endl;
+        if (m_enable_print) ::std::cerr << "lifetimetoy copy ctor" << ::std::endl;
     }
 
     lifetimetoy& operator=(lifetimetoy&& other) noexcept
     {
         m_marker = other.visit();
-        ::std::cerr << "lifetimetoy move operator=" << ::std::endl;
+        if (m_enable_print) ::std::cerr << "lifetimetoy move operator=" << ::std::endl;
         return *this;
     }
 
     lifetimetoy& operator=(const lifetimetoy& other) noexcept
     {
         m_marker = other.visit();
-        ::std::cerr << "lifetimetoy copy operator=" << ::std::endl;
+        if (m_enable_print) ::std::cerr << "lifetimetoy copy operator=" << ::std::endl;
         return *this;
     }
 
@@ -68,6 +73,7 @@ public:
 
 private:
     int m_marker{};
+    bool m_enable_print{};
     size_t m_destruction_canary{};
 };
 
