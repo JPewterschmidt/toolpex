@@ -46,22 +46,22 @@ public:
         return m_marker;
     }
 
-    bool operator==(const lifetimetoy& other) noexcept
+    bool operator==(const lifetimetoy& other) const noexcept
     {
         return visit() == other.visit();
     }
 
-    bool operator!=(const lifetimetoy& other) noexcept
+    bool operator!=(const lifetimetoy& other) const noexcept
     {
         return !((*this) == other);
     }
 
-    bool operator<(const lifetimetoy& other) noexcept
+    bool operator<(const lifetimetoy& other) const noexcept
     {
         return visit() < other.visit();
     }
 
-    bool operator>(const lifetimetoy& other) noexcept
+    bool operator>(const lifetimetoy& other) const noexcept
     {
         return visit() > other.visit();
     }
