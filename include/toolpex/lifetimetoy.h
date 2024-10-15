@@ -43,7 +43,7 @@ public:
     int visit() const noexcept
     {
         toolpex_assert(m_destruction_canary == 0);
-        return m_destruction_canary;
+        return m_marker;
     }
 
     bool operator==(const lifetimetoy& other) noexcept
