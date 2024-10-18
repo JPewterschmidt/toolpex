@@ -16,5 +16,5 @@ TEST(object_storage, basic)
 
     auto ltt = s2.get_value();
     ASSERT_EQ(ltt.visit(), 666);
-    ASSERT_FALSE(!s1.has_value());
+    ASSERT_FALSE(s2.has_value());
 }

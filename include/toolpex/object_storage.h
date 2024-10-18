@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <memory>
+#include <utility>
 
 #include "toolpex/assert.h"
 #include "toolpex/move_only.h"
@@ -15,6 +16,8 @@ template<typename T>
 class object_storage : public toolpex::move_only
 {
 public:
+    object_storage() = default;
+
     object_storage(object_storage&& other) noexcept
         : m_storage{ ::std::move(other.m_storage) }, 
           m_has_value{ ::std::exchange(other.m_has_value, false) }
