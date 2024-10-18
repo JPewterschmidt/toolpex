@@ -65,6 +65,18 @@ public:
         m_has_value = false;
     }
 
+    T& value_ref() noexcept
+    {
+        toolpex_assert(has_value());
+        return *storage();
+    }
+
+    const T& value_ref() const noexcept
+    {
+        toolpex_assert(has_value());
+        return *storage();
+    }
+
 private:
     T* storage() noexcept
     {
@@ -74,12 +86,6 @@ private:
     const T* storage() const noexcept
     {
         return reinterpret_cast<const T*>(m_storage.get());
-    }
-
-    T& value_ref() noexcept
-    {
-        toolpex_assert(has_value());
-        return *storage();
     }
 
 private:
