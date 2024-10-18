@@ -53,12 +53,17 @@ public:
         }
         
         T result{ ::std::move(value_ref()) };
-        storage()->~T();
-        m_has_value = false;
+        clear();
         return result;
     }
 
     bool has_value() const noexcept { return m_has_value; }
+
+    void clear() noexcept 
+    {
+        storage()->~T();
+        m_has_value = false;
+    }
 
 private:
     T* storage() noexcept

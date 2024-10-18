@@ -18,3 +18,12 @@ TEST(object_storage, basic)
     ASSERT_EQ(ltt.visit(), 666);
     ASSERT_FALSE(s2.has_value());
 }
+
+TEST(object_storage, clear)
+{
+    object_storage<lifetimetoy> s1;
+    s1.set_value(666);
+    ASSERT_TRUE(s1.has_value());
+    s1.clear();
+    ASSERT_FALSE(s1.has_value());
+}
