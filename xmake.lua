@@ -2,7 +2,6 @@ add_rules("mode.debug", "mode.release", "mode.asan", "mode.ubsan")
 add_requires(
     "gflags", 
     "gtest", 
-    "benchmark",
     "concurrentqueue master", 
     "libuuid"
 )
