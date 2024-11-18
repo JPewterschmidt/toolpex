@@ -65,6 +65,7 @@ TEST(callback_promise, exception)
 
     callback_promise<void> cp([&ok](future_frame<void> ff) mutable { 
         ok = !ff.safely_done();
+        (void)ff.get_exception();
     });
 
     try { throw ::std::logic_error{"for test"}; }

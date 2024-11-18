@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <cstddef>
+#include <utility>
 
 #include "toolpex/assert.h"
 #include "toolpex/move_only.h"
@@ -15,9 +16,24 @@ namespace toolpex
 struct future_frame_exception
 {
 protected:
-    ::std::exception_ptr m_ex;
+    ::std::exception_ptr m_ex{};
 
 public:
+    future_frame_exception() noexcept = default;
+
+    future_frame_exception(future_frame_exception&& other) noexcept
+        : m_ex{ ::std::exchange(other.m_ex, nullptr) }
+    {
+    }
+
+    ~future_frame_exception()
+    {
+        if (!!m_ex) [[unlikely]]
+        {
+            ::std::rethrow_exception(::std::move(m_ex));
+        }
+    }
+
     bool safely_done() const noexcept { return !m_ex; }
     void set_exception(::std::exception_ptr ex)
     {
@@ -25,6 +41,7 @@ public:
     }
 
     auto& exception() noexcept { return m_ex; }
+    auto get_exception() noexcept { return ::std::move(m_ex); }
 };
 
 template<typename T>
