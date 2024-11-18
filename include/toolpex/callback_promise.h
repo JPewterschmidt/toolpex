@@ -7,6 +7,7 @@
 #include <cstddef>
 
 #include "toolpex/assert.h"
+#include "toolpex/move_only.h"
 
 namespace toolpex
 {
@@ -52,12 +53,12 @@ class future_frame_value_or_void_common<void> : public future_frame_exception
 };
 
 template<typename T>
-class future_frame : public future_frame_value_or_void_common<T>
+class future_frame : public future_frame_value_or_void_common<T>, move_only
 {
 };
 
 template<typename T>
-class future_frame<T&> : public future_frame_value_or_void_common<T*>
+class future_frame<T&> : public future_frame_value_or_void_common<T*>, move_only
 {
 public:
     void set_value(T& t)
