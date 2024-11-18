@@ -30,7 +30,7 @@ public:
     {
         if (!!m_ex) [[unlikely]]
         {
-            ::std::rethrow_exception(::std::move(m_ex));
+            ::std::rethrow_exception(m_ex);
         }
     }
 
@@ -41,7 +41,7 @@ public:
     }
 
     auto& exception() noexcept { return m_ex; }
-    auto get_exception() noexcept { return ::std::move(m_ex); }
+    auto get_exception() noexcept { return ::std::exchange(m_ex, nullptr); }
 };
 
 template<typename T>
