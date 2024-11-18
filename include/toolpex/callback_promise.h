@@ -7,6 +7,7 @@
 #include <cstddef>
 
 #include "toolpex/assert.h"
+#include "toolpex/move_only.h"
 
 namespace toolpex
 {
@@ -23,7 +24,7 @@ public:
         m_ex = ::std::move(ex);
     }
 
-    auto get_exception() noexcept { return ::std::move(m_ex); }
+    auto& exception() noexcept { return m_ex; }
 };
 
 template<typename T>
@@ -52,12 +53,12 @@ class future_frame_value_or_void_common<void> : public future_frame_exception
 };
 
 template<typename T>
-class future_frame : public future_frame_value_or_void_common<T>
+class future_frame : public future_frame_value_or_void_common<T>, move_only
 {
 };
 
 template<typename T>
-class future_frame<T&> : public future_frame_value_or_void_common<T*>
+class future_frame<T&> : public future_frame_value_or_void_common<T*>, move_only
 {
 public:
     void set_value(T& t)
@@ -98,6 +99,13 @@ public:
         }
     }
 
+    void set_exception(::std::exception_ptr ex) noexcept
+    {
+        future_frame<T> ff;
+        ff.set_exception(::std::move(ex));
+        m_cb(::std::move(ff));
+    }
+
 private:
     callback_t m_cb;
 };
@@ -118,6 +126,13 @@ public:
     {
         future_frame<T&> ff;
         ff.set_value(t);
+        m_cb(::std::move(ff));
+    }
+
+    void set_exception(::std::exception_ptr ex) noexcept
+    {
+        future_frame<T&> ff;
+        ff.set_exception(::std::move(ex));
         m_cb(::std::move(ff));
     }
 
