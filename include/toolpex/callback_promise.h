@@ -24,7 +24,7 @@ public:
         m_ex = ::std::move(ex);
     }
 
-    auto get_exception() noexcept { return ::std::move(m_ex); }
+    auto& exception() noexcept { return m_ex; }
 };
 
 template<typename T>
@@ -99,6 +99,13 @@ public:
         }
     }
 
+    void set_exception(::std::exception_ptr ex) noexcept
+    {
+        future_frame<T> ff;
+        ff.set_exception(::std::move(ex));
+        m_cb(::std::move(ff));
+    }
+
 private:
     callback_t m_cb;
 };
@@ -119,6 +126,13 @@ public:
     {
         future_frame<T&> ff;
         ff.set_value(t);
+        m_cb(::std::move(ff));
+    }
+
+    void set_exception(::std::exception_ptr ex) noexcept
+    {
+        future_frame<T&> ff;
+        ff.set_exception(::std::move(ex));
         m_cb(::std::move(ff));
     }
 
