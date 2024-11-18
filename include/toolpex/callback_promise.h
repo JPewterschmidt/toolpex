@@ -50,6 +50,8 @@ protected:
 template<>
 class future_frame_value_or_void_common<void> : public future_frame_exception
 {
+    constexpr void set_value() { }
+    constexpr void value() noexcept { }
 };
 
 template<typename T>
