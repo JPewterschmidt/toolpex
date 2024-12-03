@@ -7,8 +7,9 @@
 #define TOOLPEX_TIC_TOC_H
 
 #include <chrono>
-#include <iostream>
+#include <print>
 #include <sstream>
+#include <format>
 
 #include "toolpex/macros.h"
 
@@ -21,10 +22,8 @@ auto tic()
 
 [[nodiscard]] auto toc(const auto& tp)
 {
-    ::std::stringstream ss{};   
-    auto now = ::std::chrono::high_resolution_clock::now();
-    ss << ::std::chrono::duration_cast<::std::chrono::nanoseconds>(now - tp).count() << "ns" << ::std::endl;
-    return ss.str();
+    const auto now = ::std::chrono::high_resolution_clock::now();
+    return ::std::format("{}ms", ::std::chrono::duration_cast<::std::chrono::milliseconds>(now - tp).count());
 }
 
 TOOLPEX_NAMESPACE_END
