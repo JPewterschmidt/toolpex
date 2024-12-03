@@ -50,18 +50,18 @@ public:
     unique_posix_fd& operator=(const unique_posix_fd&) = delete;
 
     operator int() const noexcept { return m_fd; }
-    operator bool() const noexcept { return m_fd != 0; }
+    operator bool() const noexcept { return valid(); }
 
     void close() noexcept
     {
-        if (m_fd == 1 || m_fd == 2 || m_fd == 3)
+        if (m_fd == 0 || m_fd == 1 || m_fd == 2)
             release();
 
         else if (valid())
             ::close(release());
     }
 
-    bool valid() const noexcept { return m_fd >= 0; }
+    bool valid() const noexcept { return m_fd != -1; }
 
 private:
     int release() noexcept { return ::std::exchange(m_fd, -1); }
