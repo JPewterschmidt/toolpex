@@ -2,7 +2,7 @@
 #define TOOLPEX_LIFETIMETOY_H
 
 #include <cstddef>
-#include <iostream>
+#include <print>
 #include "toolpex/assert.h"
 
 namespace toolpex
@@ -22,26 +22,26 @@ public:
     lifetimetoy(lifetimetoy&& other) noexcept
         : m_marker{ other.visit() }
     {
-        if (m_enable_print) ::std::cerr << "lifetimetoy move ctor" << ::std::endl;
+        if (m_enable_print) ::std::println("lifetimetoy move ctor");
     }
 
     lifetimetoy(const lifetimetoy& other) noexcept
         : m_marker{ other.visit() }
     {
-        if (m_enable_print) ::std::cerr << "lifetimetoy copy ctor" << ::std::endl;
+        if (m_enable_print) ::std::println("lifetimetoy copy ctor");
     }
 
     lifetimetoy& operator=(lifetimetoy&& other) noexcept
     {
         m_marker = other.visit();
-        if (m_enable_print) ::std::cerr << "lifetimetoy move operator=" << ::std::endl;
+        if (m_enable_print) ::std::println("lifetimetoy move operator=");
         return *this;
     }
 
     lifetimetoy& operator=(const lifetimetoy& other) noexcept
     {
         m_marker = other.visit();
-        if (m_enable_print) ::std::cerr << "lifetimetoy copy operator=" << ::std::endl;
+        if (m_enable_print) ::std::println("lifetimetoy copy operator=");
         return *this;
     }
 

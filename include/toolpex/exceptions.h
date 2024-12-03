@@ -16,7 +16,7 @@
 #include <system_error>
 #include <string>
 #include <format>
-#include <iostream>
+#include <print>
 #include <stacktrace>
 
 #include "toolpex/macros.h"
@@ -25,10 +25,10 @@ TOOLPEX_NAMESPACE_BEG
 
 [[noreturn]] inline void not_implemented(::std::string_view msg = {}, ::std::source_location sl = ::std::source_location::current())
 {
-    auto str = std::format("This functionality is not implemented! "
-                           "msg: {}, location: {} :{}, function signature: {}.",
-                           msg, sl.file_name(), sl.line(), sl.function_name());
-    ::std::cerr << str << "\n" << ::std::stacktrace::current() << ::std::endl;
+    ::std::println("This functionality is not implemented! "
+                   "msg: {}, location: {} :{}, function signature: {}.\n{}",
+                   msg, sl.file_name(), sl.line(), sl.function_name(), 
+                   ::std::stacktrace::current());
     ::quick_exit(1);
 }
 
