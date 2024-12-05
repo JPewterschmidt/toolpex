@@ -21,13 +21,24 @@ public:
 
     explicit posix_err_thrower(int err)
     {
+        this -> operator << (err);
+    }
+
+    explicit posix_err_thrower(::std::error_code ec)
+    {
+        this -> operator << (ec);
+    }
+
+    int operator << (int err)
+    {
         if (err) [[unlikely]]
         {
             throw toolpex::posix_exception{ err };
         }
+        return err;
     }
 
-    explicit posix_err_thrower(::std::error_code ec)
+    void operator << (::std::error_code ec)
     {
         if (ec) [[unlikely]]
         {
