@@ -15,6 +15,7 @@
 #include <cstdint>
 
 #include "toolpex/assert.h" 
+#include "toolpex/byteswap.h"
 
 namespace toolpex
 {
@@ -28,7 +29,7 @@ Int decode_big_endian_from(::std::span<const ::std::byte> buffer)
     
     if constexpr (::std::endian::native == ::std::endian::little)
     {
-        return ::std::byteswap(result);
+        return toolpex::byteswap(result);
     }
     else if constexpr (::std::endian::native == ::std::endian::big)
     {
@@ -46,7 +47,7 @@ void encode_big_endian_to(::std::integral auto i, ::std::span<::std::byte> buffe
     toolpex_assert(buffer.size() >= sizeof(i));
     if constexpr (::std::endian::native == ::std::endian::little)
     {
-        i = ::std::byteswap(i);
+        i = toolpex::byteswap(i);
     }
     ::std::memcpy(buffer.data(), &i, sizeof(i));
 }
@@ -60,7 +61,7 @@ Int decode_little_endian_from(::std::span<const ::std::byte> buffer)
     
     if constexpr (::std::endian::native == ::std::endian::big)
     {
-        return ::std::byteswap(result);
+        return toolpex::byteswap(result);
     }
     else if constexpr (::std::endian::native == ::std::endian::little)
     {
@@ -78,7 +79,7 @@ void encode_little_endian_to(::std::integral auto i, ::std::span<::std::byte> bu
     toolpex_assert(buffer.size() >= sizeof(i));
     if constexpr (::std::endian::native == ::std::endian::big)
     {
-        i = ::std::byteswap(i);
+        i = toolpex::byteswap(i);
     }
     ::std::memcpy(buffer.data(), &i, sizeof(i));
 }

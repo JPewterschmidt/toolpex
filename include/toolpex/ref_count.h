@@ -48,7 +48,7 @@ private:
 class ref_count_guard
 {
 public:
-    constexpr ref_count_guard(ref_count& r) noexcept
+    ref_count_guard(ref_count& r) noexcept
         : m_cnt{ &r }
     {
         m_cnt->fetch_add();

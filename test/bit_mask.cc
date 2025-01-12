@@ -11,7 +11,7 @@ using namespace toolpex;
 
 TEST(bit_mask, basic)
 {
-    constexpr ::std::bitset<8> flags[]{
+    ::std::bitset<8> flags[]{
         ::std::bitset<8>{"00000001"}, 
         ::std::bitset<8>{"00000010"}, 
         ::std::bitset<8>{"00000100"}, 

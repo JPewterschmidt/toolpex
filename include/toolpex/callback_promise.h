@@ -96,7 +96,7 @@ template<typename T>
 class callback_promise
 {
 public:
-    using callback_t = ::std::move_only_function<void(future_frame<T>)>;
+    using callback_t = ::std::function<void(future_frame<T>)>;
 
     callback_promise(callback_t cb) noexcept
         : m_cb{ ::std::move(cb) }
@@ -134,7 +134,7 @@ template<typename T>
 class callback_promise<T&>
 {
 public:
-    using callback_t = ::std::move_only_function<void(future_frame<T&>)>;
+    using callback_t = ::std::function<void(future_frame<T&>)>;
 
     callback_promise(callback_t cb) noexcept
         : m_cb{ ::std::move(cb) }

@@ -17,18 +17,20 @@
 #include <string>
 #include <format>
 #include <print>
-#include <stacktrace>
 
 #include "toolpex/macros.h"
+
+#include "cpptrace/cpptrace.hpp"
+#include "fmt/core.h"
 
 TOOLPEX_NAMESPACE_BEG
 
 [[noreturn]] inline void not_implemented(::std::string_view msg = {}, ::std::source_location sl = ::std::source_location::current())
 {
-    ::std::println("This functionality is not implemented! "
-                   "msg: {}, location: {} :{}, function signature: {}.\n{}",
-                   msg, sl.file_name(), sl.line(), sl.function_name(), 
-                   ::std::stacktrace::current());
+    ::fmt::println("This functionality is not implemented! "
+                   "msg: {}, location: {} :{}, function signature: {}.\n",
+                   msg, sl.file_name(), sl.line(), sl.function_name());
+    cpptrace::generate_trace().print();
     ::quick_exit(1);
 }
 
