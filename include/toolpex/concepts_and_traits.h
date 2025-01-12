@@ -145,12 +145,6 @@ struct get_return_type_helper<::std::function<F>>
     using type = ::std::function<F>::result_type;
 };
 
-template <typename F>
-struct get_return_type_helper<::std::move_only_function<F>> 
-{
-    using type = ::std::function<F>::result_type;
-};
-
 template <typename Callable>
 struct get_return_type
 {

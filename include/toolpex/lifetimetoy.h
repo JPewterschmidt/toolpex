@@ -5,6 +5,8 @@
 #include <print>
 #include "toolpex/assert.h"
 
+#include "fmt/core.h"
+
 namespace toolpex
 {
 
@@ -22,26 +24,26 @@ public:
     lifetimetoy(lifetimetoy&& other) noexcept
         : m_marker{ other.visit() }
     {
-        if (m_enable_print) ::std::println("lifetimetoy move ctor");
+        if (m_enable_print) ::fmt::println("lifetimetoy move ctor");
     }
 
     lifetimetoy(const lifetimetoy& other) noexcept
         : m_marker{ other.visit() }
     {
-        if (m_enable_print) ::std::println("lifetimetoy copy ctor");
+        if (m_enable_print) ::fmt::println("lifetimetoy copy ctor");
     }
 
     lifetimetoy& operator=(lifetimetoy&& other) noexcept
     {
         m_marker = other.visit();
-        if (m_enable_print) ::std::println("lifetimetoy move operator=");
+        if (m_enable_print) ::fmt::println("lifetimetoy move operator=");
         return *this;
     }
 
     lifetimetoy& operator=(const lifetimetoy& other) noexcept
     {
         m_marker = other.visit();
-        if (m_enable_print) ::std::println("lifetimetoy copy operator=");
+        if (m_enable_print) ::fmt::println("lifetimetoy copy operator=");
         return *this;
     }
 

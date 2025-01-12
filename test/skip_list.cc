@@ -262,8 +262,10 @@ TEST_F(skip_list_test, correctness)
     ASSERT_TRUE(::std::ranges::is_sorted(l));
     ASSERT_TRUE(::std::ranges::is_sorted(vec));
 
-    for (auto [lhs, rhs] : rv::zip(l, vec))
+    auto vi = begin(vec);
+    auto li = begin(l);
+    for (; vi != end(vec) && li != end(l); ++vi, ++li)
     {
-        ASSERT_EQ(lhs, rhs);
+        ASSERT_EQ(*vi, *li);
     }
 }

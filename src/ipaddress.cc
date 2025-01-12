@@ -145,9 +145,9 @@ ip_address::make(::std::string_view str)
 {
     using namespace ::std::string_view_literals;
 
-    if (str.contains('.') && !str.contains(":"))
+    if (str.find('.') != ::std::string_view::npos && str.find(':') == ::std::string_view::npos)
         return make_v4(str);
-    else if (str.contains(':'))
+    else if (str.find(':') != ::std::string_view::npos)
         return make_v6(str);
     else if (str == "localhost"sv)
     {
