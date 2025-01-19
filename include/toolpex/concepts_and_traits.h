@@ -98,12 +98,13 @@ concept is_std_chrono_time_point = toolpex::is_specialization_of<Timepoint, ::st
 template<typename DuraOrPoint>
 concept is_std_chrono_duration_or_time_point = is_std_chrono_duration<DuraOrPoint> or is_std_chrono_time_point<DuraOrPoint>;
 
+//https://qiita.com/angeart/items/94734d68999eca575881
 namespace functor_detail
 {
-    template<class Ret, class Cls, class IsMutable, class... Args>
+    template<class Ret, class Cls, class IsConst, class... Args>
     struct types
     {
-        using is_mutable = IsMutable;
+        using is_const = IsConst;
 
         enum { arity = sizeof...(Args) };
 
@@ -124,12 +125,12 @@ struct functor_type
 
 template<class Ret, bool Nx, class Cls, class... Args>
 struct functor_type<Ret(Cls::*)(Args...) noexcept (Nx)>
-    : functor_detail::types<Ret,Cls,std::true_type,Args...>
+    : functor_detail::types<Ret, Cls, ::std::false_type, Args...>
 {};
 
 template<class Ret, bool Nx, class Cls, class... Args>
 struct functor_type<Ret(Cls::*)(Args...) const noexcept (Nx)>
-    : functor_detail::types<Ret,Cls,std::false_type,Args...>
+    : functor_detail::types<Ret, Cls, ::std::true_type, Args...>
 {};
 
 template <typename Callable>
@@ -138,14 +139,13 @@ struct get_return_type_helper : functor_type<decltype(&Callable::operator())>
 
 template<class Ret, bool Nx, class Cls, class... Args>
 struct get_return_type_helper<Ret(Cls::*)(Args...) noexcept(Nx)>
-    : functor_detail::types<Ret,Cls,std::true_type,Args...>
+    : functor_detail::types<Ret, Cls, ::std::false_type, Args...>
 {};
 
 template<class Ret, bool Nx, class Cls, class... Args>
 struct get_return_type_helper<Ret(Cls::*)(Args...) const noexcept(Nx)>
-    : functor_detail::types<Ret,Cls,std::false_type,Args...>
+    : functor_detail::types<Ret, Cls, ::std::true_type, Args...>
 {};
-
 
 template <typename Ret, bool Nx, typename... Args>
 struct get_return_type_helper<Ret (Args...) noexcept (Nx)> 
