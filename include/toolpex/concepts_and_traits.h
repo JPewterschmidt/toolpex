@@ -26,14 +26,8 @@ struct number_of_parameters
     // Not support functor returned form `std::bind`, or lambda.
 };
 
-template<typename Ret, typename... Args>
-struct number_of_parameters<Ret(Args...)>
-{
-    static constexpr size_t value = sizeof...(Args);
-};
-
-template<typename Ret, typename... Args>
-struct number_of_parameters<Ret(Args...) noexcept>
+template<typename Ret, bool Nx, typename... Args>
+struct number_of_parameters<Ret(Args...) noexcept (Nx)>
 {
     static constexpr size_t value = sizeof...(Args);
 };
@@ -44,44 +38,20 @@ struct number_of_parameters<::std::function<Ret(Args...)>>
     static constexpr size_t value = sizeof...(Args);
 };
 
-template<typename Ret, typename... Args>
-struct number_of_parameters<::std::function<Ret(Args...) noexcept>>
+template<typename Ret, bool Nx, typename... Args>
+struct number_of_parameters<Ret(*)(Args...) noexcept (Nx)>
 {
     static constexpr size_t value = sizeof...(Args);
 };
 
-template<typename Ret, typename... Args>
-struct number_of_parameters<Ret(*)(Args...)>
+template<typename Ret, bool Nx, typename Class, typename... Args>
+struct number_of_parameters<Ret(Class::*)(Args...) noexcept (Nx)>
 {
     static constexpr size_t value = sizeof...(Args);
 };
 
-template<typename Ret, typename... Args>
-struct number_of_parameters<Ret(*)(Args...) noexcept>
-{
-    static constexpr size_t value = sizeof...(Args);
-};
-
-template<typename Ret, typename Class, typename... Args>
-struct number_of_parameters<Ret(Class::*)(Args...)>
-{
-    static constexpr size_t value = sizeof...(Args);
-};
-
-template<typename Ret, typename Class, typename... Args>
-struct number_of_parameters<Ret(Class::*)(Args...) const>
-{
-    static constexpr size_t value = sizeof...(Args);
-};
-
-template<typename Ret, typename Class, typename... Args>
-struct number_of_parameters<Ret(Class::*)(Args...) noexcept>
-{
-    static constexpr size_t value = sizeof...(Args);
-};
-
-template<typename Ret, typename Class, typename... Args>
-struct number_of_parameters<Ret(Class::*)(Args...) const noexcept>
+template<typename Ret, bool Nx, typename Class, typename... Args>
+struct number_of_parameters<Ret(Class::*)(Args...) const noexcept (Nx)>
 {
     static constexpr size_t value = sizeof...(Args);
 };
