@@ -63,11 +63,8 @@ TEST_F(buffer_suite, joint)
     auto sp1 = b.blocks()[0].valid_span();
     auto sp2 = b.blocks()[1].valid_span();
 
-    auto str = b.joint_valid_view() 
-        | rv::transform([](char8_t item) { return static_cast<char>(item); })
-        | r::to<::std::string>()
-        ;
-    auto a = { sp1, sp2 };
+    auto str = b.joint_valid_view() | r::to<::std::string>();
+    auto a = { sp1, sp2 }; // I'm actually wanna use rv::concat, but it's form C++26
     ASSERT_TRUE(::std::ranges::equal(str, a | rv::join)) 
         << "str: " << str
         << "sp1: " << (sp1 | r::to<::std::string>())
