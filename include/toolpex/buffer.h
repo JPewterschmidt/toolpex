@@ -69,6 +69,7 @@ public:
     size_t current_block_left() const noexcept; 
     size_t current_block_capacity() const noexcept;
     size_t new_block_capacity() const noexcept { return m_newblock_capa; }
+    size_t total_bytes_allocated() const noexcept;
 
     const auto& blocks() const noexcept { return m_blocks; }
     const auto& last_block() const noexcept

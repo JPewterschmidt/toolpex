@@ -2,6 +2,11 @@
 #include <utility>
 #include <limits>
 #include <iterator>
+#include <functional>
+#include <algorithm>
+
+namespace rv = ::std::ranges::views;
+namespace r = ::std::ranges;
 
 namespace toolpex
 {
@@ -203,6 +208,14 @@ buffer buffer::dup(::std::pmr::memory_resource* pmr) const
     result.set_new_block_capacity(old_block_capa);
     
     return result;
+}
+
+size_t buffer::total_bytes_allocated() const noexcept
+{
+    return r::fold_left_first(
+        blocks() | rv::transform([](auto&& item) { return item.capacity(); }),
+        ::std::plus{}
+    ).value_or(0);
 }
 
 } // namespace toolpex
