@@ -2,6 +2,11 @@
 #include <utility>
 #include <limits>
 #include <iterator>
+#include <functional>
+#include <algorithm>
+
+namespace rv = ::std::ranges::views;
+namespace r = ::std::ranges;
 
 namespace toolpex
 {
@@ -10,9 +15,10 @@ namespace toolpex
 
 buffer_block::buffer_block(size_t block_capa, 
                            ::std::pmr::memory_resource* pmr)
-    : m_pmr{ pmr ? pmr : ::std::pmr::get_default_resource() }, 
-      m_block_capacity{ block_capa }
+    : m_pmr{ pmr ? pmr : ::std::pmr::get_default_resource() }
 {
+    constexpr size_t alignment = alignof(::std::max_align_t);
+    m_block_capacity = (block_capa + alignment - 1) & ~(alignment - 1);
     m_storage = static_cast<char8_t*>(m_pmr->allocate(m_block_capacity));
 }
 
@@ -182,6 +188,54 @@ bool buffer::append(::std::span<const char8_t> bytes)
     commit_write(bytes.size());
 
     return true;
+}
+
+size_t buffer::set_new_block_capacity(size_t newblock_capacity_bytes) noexcept
+{
+    return ::std::exchange(m_newblock_capa, newblock_capacity_bytes);
+}
+
+buffer buffer::dup(::std::pmr::memory_resource* pmr) const
+{
+    const size_t old_block_capa = new_block_capacity();
+    buffer result(old_block_capa, pmr ? pmr : m_pmr);
+
+    auto fit_in_a_page = [first = true, sum = 0ul, old_block_capa] (auto&& lhs, auto&& rhs) mutable { 
+        if (::std::exchange(first, false))
+        {
+            if ((sum += lhs.size()) < old_block_capa)
+                return true;
+            sum = 0ul;
+            return false;
+        }
+
+        const bool result = (sum += rhs.size() < old_block_capa);
+        if (!result)
+        {
+            sum = 0ul;
+        }
+        return result;
+    };
+
+    for (auto block_sps : blocks_valid_span() | rv::chunk_by(fit_in_a_page))
+    {
+        const size_t need = r::fold_left(block_sps | rv::transform([](auto&& item) { return item.size(); }), 0, ::std::plus{});
+        result.set_new_block_capacity(need);
+        for (auto sp : block_sps)
+            result.append(sp);
+    }
+
+    result.set_new_block_capacity(old_block_capa);
+    
+    return result;
+}
+
+size_t buffer::total_bytes_allocated() const noexcept
+{
+    return r::fold_left_first(
+        blocks() | rv::transform([](auto&& item) { return item.capacity(); }),
+        ::std::plus{}
+    ).value_or(0);
 }
 
 } // namespace toolpex
