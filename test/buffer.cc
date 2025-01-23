@@ -77,8 +77,15 @@ TEST_F(buffer_suite, dup)
     b.reset();
     feed_one();
     feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
     
     buffer c = b.dup();
     ASSERT_TRUE(::std::ranges::equal(c.joint_valid_view(), b.joint_valid_view()));
-    ASSERT_LE(c.total_bytes_allocated(), b.total_bytes_allocated());
+    ASSERT_LE(c.total_bytes_allocated(), b.total_bytes_allocated())
+        << "new total bytes allocated = " << c.total_bytes_allocated()
+        << ", old :" << b.total_bytes_allocated()
+        ;
 }
