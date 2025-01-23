@@ -232,10 +232,11 @@ buffer buffer::dup(::std::pmr::memory_resource* pmr) const
 
 size_t buffer::total_bytes_allocated() const noexcept
 {
-    return r::fold_left_first(
+    return r::fold_left(
         blocks() | rv::transform([](auto&& item) { return item.capacity(); }),
+        0, 
         ::std::plus{}
-    ).value_or(0);
+    );
 }
 
 } // namespace toolpex
