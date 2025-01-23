@@ -80,4 +80,5 @@ TEST_F(buffer_suite, dup)
     
     buffer c = b.dup();
     ASSERT_TRUE(::std::ranges::equal(c.joint_valid_view(), b.joint_valid_view()));
+    ASSERT_LE(c.total_bytes_allocated(), b.total_bytes_allocated());
 }
