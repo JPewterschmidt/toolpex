@@ -68,17 +68,18 @@ public:
     ::std::span<char8_t> writable_span(size_t at_least = 0);
     bool commit_write(size_t nbytes_wrote) noexcept;
 
-private:
-    void release() noexcept;
     size_t current_block_left() const noexcept; 
     size_t current_block_capacity() const noexcept;
+
+private:
+    void release() noexcept;
 
 private:
     ::std::pmr::memory_resource* m_pmr{};
     ::std::vector<buffer_block> m_blocks;
 
     size_t m_newblock_capa{};
-    buffer_block* m_current_block;
+    buffer_block* m_current_block{};
 };
 
 } // namespace toolpex
