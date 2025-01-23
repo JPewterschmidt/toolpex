@@ -5,6 +5,7 @@
 #include <span>
 #include <memory_resource>
 #include <cstddef>
+#include <ranges>
 #include "toolpex/assert.h"
 
 namespace toolpex
@@ -55,7 +56,7 @@ public:
     
     buffer(buffer&& other) noexcept;
     buffer& operator=(buffer&& other) noexcept;
-    ~buffer() noexcept { release(); m_pmr = nullptr; }
+    ~buffer() noexcept { reset(); m_pmr = nullptr; }
 
     void set_new_block_capacity(size_t newblock_capacity_bytes) noexcept
     {
@@ -71,8 +72,26 @@ public:
     size_t current_block_left() const noexcept; 
     size_t current_block_capacity() const noexcept;
 
-private:
-    void release() noexcept;
+    const auto& blocks() const noexcept { return m_blocks; }
+    const auto& last_block() const noexcept
+    {
+        toolpex_assert(!m_blocks.empty());
+        return m_blocks.back();
+    }
+
+    ::std::ranges::range auto blocks_valid_span() const noexcept
+    {
+        namespace rv = ::std::ranges::views;
+        return blocks() | rv::transform([](auto&& item) { return item.valid_span(); });
+    }
+
+    ::std::ranges::range auto joint_valid_view() const noexcept 
+    {
+        namespace rv = ::std::ranges::views;
+        return blocks_valid_span() | rv::join;
+    }
+
+    void reset() noexcept;
 
 private:
     ::std::pmr::memory_resource* m_pmr{};

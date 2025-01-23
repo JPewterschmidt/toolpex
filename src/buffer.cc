@@ -119,8 +119,9 @@ buffer& buffer::operator=(buffer&& other) noexcept
     return *this;
 }
 
-void buffer::release() noexcept
+void buffer::reset() noexcept
 {
+    m_current_block = nullptr;
     m_blocks.clear();
 }
 
@@ -165,17 +166,20 @@ bool buffer::commit_write(size_t nbytes_wrote) noexcept
 
 bool buffer::append(::std::string_view str)
 {
-    // +1 for the terminator character.
     return this->append(::std::span<const char8_t>{ 
         reinterpret_cast<const char8_t*>(str.data()), 
-        str.size() + 1 
+        str.size()
     });
 }
 
 bool buffer::append(::std::span<const char8_t> bytes)
 {
     auto writable = this->writable_span(bytes.size());
+    if (writable.size() == 0)
+        return false;
+
     ::std::copy(begin(bytes), end(bytes), begin(writable));
+    commit_write(bytes.size());
 
     return true;
 }
