@@ -184,4 +184,25 @@ bool buffer::append(::std::span<const char8_t> bytes)
     return true;
 }
 
+size_t buffer::set_new_block_capacity(size_t newblock_capacity_bytes) noexcept
+{
+    return ::std::exchange(m_newblock_capa, newblock_capacity_bytes);
+}
+
+buffer buffer::dup(::std::pmr::memory_resource* pmr) const
+{
+    const size_t old_block_capa = new_block_capacity();
+    buffer result(old_block_capa, pmr ? pmr : m_pmr);
+
+    for (auto block_sp : blocks_valid_span())
+    {
+        result.set_new_block_capacity(block_sp.size());
+        result.append(block_sp);
+    }
+
+    result.set_new_block_capacity(old_block_capa);
+    
+    return result;
+}
+
 } // namespace toolpex
