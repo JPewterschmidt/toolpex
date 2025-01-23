@@ -67,7 +67,7 @@ TEST_F(buffer_suite, joint)
         | rv::transform([](char8_t item) { return static_cast<char>(item); })
         | r::to<::std::string>()
         ;
-    ::std::array a{ sp1, sp2 };
+    auto a = { sp1, sp2 };
     ASSERT_TRUE(::std::ranges::equal(str, a | rv::join)) 
         << "str: " << str
         << "sp1: " << (sp1 | r::to<::std::string>())
