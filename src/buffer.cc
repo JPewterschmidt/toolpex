@@ -177,7 +177,7 @@ bool buffer::append(::std::string_view str)
     });
 }
 
-bool buffer::append(::std::span<const ::std::byte> bytes)
+bool buffer::append_bytes(::std::span<const ::std::byte> bytes)
 {
     auto writable = this->writable_span(bytes.size());
     if (writable.size() == 0)

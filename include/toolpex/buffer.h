@@ -71,7 +71,12 @@ public:
     size_t set_new_block_capacity(size_t newblock_capacity_bytes) noexcept;
 
     bool append(::std::string_view str);
-    bool append(::std::span<const ::std::byte> bytes);
+
+    template<typename T>
+    bool append(::std::span<const T> stuff)
+    {
+        return this->append_bytes(::std::as_bytes(stuff));
+    }
 
     ::std::span<::std::byte> writable_span(size_t at_least = 0);
     bool commit_write(size_t nbytes_wrote) noexcept;
@@ -104,6 +109,7 @@ public:
 
 private:
     void reset() noexcept;
+    bool append_bytes(::std::span<const ::std::byte> bytes);
 
 private:
     ::std::pmr::memory_resource* m_pmr{};
