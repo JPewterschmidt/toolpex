@@ -17,9 +17,8 @@ buffer_block::buffer_block(size_t block_capa,
                            ::std::pmr::memory_resource* pmr)
     : m_pmr{ pmr ? pmr : ::std::pmr::get_default_resource() }
 {
-    constexpr size_t alignment = alignof(::std::max_align_t);
     m_block_capacity = (block_capa + alignment - 1) & ~(alignment - 1);
-    m_storage = static_cast<char8_t*>(m_pmr->allocate(m_block_capacity));
+    m_storage = static_cast<::std::byte*>(m_pmr->allocate(m_block_capacity));
 }
 
 void buffer_block::release() noexcept
@@ -56,17 +55,17 @@ buffer_block& buffer_block::operator=(buffer_block&& other) noexcept
     return *this;
 }
 
-buffer_block::operator ::std::span<char8_t> () noexcept
+buffer_block::operator ::std::span<::std::byte> () noexcept
 {
     return { m_storage, m_block_capacity };
 }
 
-buffer_block::operator ::std::span<const char8_t> () const noexcept
+buffer_block::operator ::std::span<const ::std::byte> () const noexcept
 {
     return { m_storage, m_block_capacity };
 }
 
-char8_t* buffer_block::cursor() noexcept
+::std::byte* buffer_block::cursor() noexcept
 {
     return m_storage + size();
 }
@@ -76,7 +75,7 @@ bool buffer_block::fit(size_t nbytes_wanna_write) const noexcept
     return nbytes_wanna_write <= left();
 }
 
-::std::span<char8_t> buffer_block::writable_span() noexcept
+::std::span<::std::byte> buffer_block::writable_span() noexcept
 {
     return { cursor(), left() };
 }
@@ -88,12 +87,12 @@ bool buffer_block::commit_write(size_t bytes) noexcept
     return true;
 }
 
-::std::span<char8_t> buffer_block::valid_span() noexcept
+::std::span<::std::byte> buffer_block::valid_span() noexcept
 {
     return { m_storage, size() };
 }
 
-::std::span<const char8_t> buffer_block::valid_span() const noexcept
+::std::span<const ::std::byte> buffer_block::valid_span() const noexcept
 {
     return { m_storage, size() };
 }
@@ -143,9 +142,9 @@ size_t buffer::current_block_capacity() const noexcept
     return m_current_block->capacity();
 }
 
-::std::span<char8_t> buffer::writable_span(size_t at_least)
+::std::span<::std::byte> buffer::writable_span(size_t at_least)
 {
-    ::std::span<char8_t> result = m_current_block ? m_current_block->writable_span() : ::std::span<char8_t>{};
+    ::std::span<::std::byte> result = m_current_block ? m_current_block->writable_span() : ::std::span<::std::byte>{};
     if (result.size() == 0 || result.size() < (at_least ? at_least : ::std::numeric_limits<size_t>::max()))
     {
         toolpex_assert(m_pmr && m_newblock_capa); // prevent use after destruct.
@@ -172,13 +171,13 @@ bool buffer::commit_write(size_t nbytes_wrote) noexcept
 
 bool buffer::append(::std::string_view str)
 {
-    return this->append(::std::span<const char8_t>{ 
-        reinterpret_cast<const char8_t*>(str.data()), 
+    return this->append(::std::span<const ::std::byte>{ 
+        reinterpret_cast<const ::std::byte*>(str.data()), 
         str.size()
     });
 }
 
-bool buffer::append(::std::span<const char8_t> bytes)
+bool buffer::append(::std::span<const ::std::byte> bytes)
 {
     auto writable = this->writable_span(bytes.size());
     if (writable.size() == 0)
