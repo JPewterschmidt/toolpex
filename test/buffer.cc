@@ -1,7 +1,6 @@
 #include "toolpex/buffer.h"
 #include "gtest/gtest.h"
 #include "toolpex/functional.h"
-#include "toolpex/utility.h"
 
 #include <string>
 #include <span>
@@ -70,8 +69,8 @@ TEST_F(buffer_suite, joint)
     auto a = initl | rv::join | rv::transform([](auto item) { return (char)item; }) | r::to<::std::string>();
     ASSERT_EQ(str, a)
         << "str: " << str
-        << "sp1: " << (sp1 | rv:transform(byte_to_char) | r::to<::std::string>())
-        << "sp2: " << (sp2 | rv:transform(byte_to_char) | r::to<::std::string>())
+        << "sp1: " << (sp1 | rv::transform(byte_to_char) | r::to<::std::string>())
+        << "sp2: " << (sp2 | rv::transform(byte_to_char) | r::to<::std::string>())
         ;
 }
 

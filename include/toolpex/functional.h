@@ -11,6 +11,7 @@
 #include <functional>
 #include <ranges>
 #include <tuple>
+#include <cstddef>
 
 TOOLPEX_NAMESPACE_BEG
 
@@ -78,6 +79,11 @@ private:
 private:
     StrTuple m_strs{::std::string_view{}};
 };
+
+inline char byte_to_char(::std::byte b)
+{
+    return static_cast<char>(b);
+}
 
 TOOLPEX_NAMESPACE_END
 
