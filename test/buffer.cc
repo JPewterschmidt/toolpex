@@ -3,6 +3,7 @@
 #include "toolpex/functional.h"
 
 #include <string>
+#include <span>
 
 using namespace toolpex;
 using namespace ::std::string_literals;
@@ -29,7 +30,7 @@ public:
 
     bool feed_one()
     {
-        ::std::array<char8_t, 1> isingle{'8'};
+        ::std::array<::std::byte, 1> isingle{(::std::byte)'8'};
         auto ws = b.writable_span();
         ws[0] = isingle[0];
         return b.commit_write(1);
@@ -47,7 +48,7 @@ TEST_F(buffer_suite, big_block)
 
 TEST_F(buffer_suite, feed_one)
 {
-    b.reset();
+    b = { 16 };
     ASSERT_TRUE(feed_one());
 
     // make sure all writes has been committed
@@ -56,25 +57,26 @@ TEST_F(buffer_suite, feed_one)
 
 TEST_F(buffer_suite, joint)
 {
-    b.reset();
+    b = { 16 };
     feed_one();
     feed_large_chunk();
 
     auto sp1 = b.blocks()[0].valid_span();
     auto sp2 = b.blocks()[1].valid_span();
 
-    auto str = b.joint_valid_view() | r::to<::std::string>();
-    auto a = { sp1, sp2 }; // I'm actually wanna use rv::concat, but it's form C++26
-    ASSERT_TRUE(::std::ranges::equal(str, a | rv::join)) 
+    auto str = buffer_lens<char>(b).flattened_view() | r::to<::std::string>();
+    auto initl = { sp1, sp2 };
+    auto a = initl | rv::join | rv::transform([](auto item) { return (char)item; }) | r::to<::std::string>();
+    ASSERT_EQ(str, a)
         << "str: " << str
-        << "sp1: " << (sp1 | r::to<::std::string>())
-        << "sp2: " << (sp2 | r::to<::std::string>())
+        << "sp1: " << (sp1 | rv::transform(byte_to_char) | r::to<::std::string>())
+        << "sp2: " << (sp2 | rv::transform(byte_to_char) | r::to<::std::string>())
         ;
 }
 
 TEST_F(buffer_suite, dup)
 {
-    b.reset();
+    b = { 16 };
     feed_one();
     feed_large_chunk();
     feed_one();
@@ -83,7 +85,7 @@ TEST_F(buffer_suite, dup)
     feed_large_chunk();
     
     buffer c = b.dup();
-    ASSERT_TRUE(::std::ranges::equal(c.joint_valid_view(), b.joint_valid_view()));
+    ASSERT_TRUE(::std::ranges::equal(c.flattened_view(), b.flattened_view()));
     ASSERT_LE(c.total_bytes_allocated(), b.total_bytes_allocated())
         << "new total bytes allocated = " << c.total_bytes_allocated()
         << ", old :" << b.total_bytes_allocated()
