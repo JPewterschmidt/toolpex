@@ -9,6 +9,8 @@
 #include <string>
 #include <string_view>
 
+#include "toolpex/functional.h" // for lazy_string_concater
+
 namespace toolpex
 {
 
