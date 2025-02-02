@@ -169,6 +169,34 @@ bool buffer::commit_write(size_t nbytes_wrote) noexcept
     return m_current_block->commit_write(nbytes_wrote);
 }
 
+::std::span<const ::std::byte> buffer::next_readable_span() const noexcept
+{
+    if (m_blocks.empty()) [[unlikely]] return {};
+    const auto& blk = m_blocks[m_current_reading_block_idx];
+    return blk.valid_span().subspan(m_current_block_readed_nbytes);
+}
+
+bool buffer::commit_read_impl(size_t nbytes, bool remove_after_read) noexcept
+{
+    if (m_blocks.empty()) [[unlikely]] return false;
+    
+    const auto& blk = m_blocks[m_current_reading_block_idx];
+    toolpex_assert(nbytes + m_current_block_readed_nbytes <= blk.valid_span().size_bytes());
+
+    if ((m_current_block_readed_nbytes += nbytes) == blk.valid_span().size())
+    {
+        if (remove_after_read)
+        {
+            m_blocks[m_current_reading_block_idx] = {};
+        }
+
+        ++m_current_reading_block_idx;
+        m_current_block_readed_nbytes = 0;
+    }
+    
+    return true;
+}
+
 bool buffer::append(::std::string_view str)
 {
     return this->append(::std::span<const ::std::byte>{ 

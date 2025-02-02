@@ -18,6 +18,7 @@ public:
     constexpr static size_t alignment = alignof(::std::max_align_t);
 
 public:
+    constexpr buffer_block() noexcept = default;
     buffer_block(size_t block_capa = 4096, 
                  ::std::pmr::memory_resource* pmr = nullptr);
 
@@ -81,6 +82,10 @@ public:
     ::std::span<::std::byte> writable_span(size_t at_least = 0);
     bool commit_write(size_t nbytes_wrote) noexcept;
 
+    ::std::span<const ::std::byte> next_readable_span() const noexcept;
+    bool commit_read(size_t nbytes_read) noexcept { return commit_read_impl(nbytes_read, false); }
+    bool commit_remove_after_read(size_t nbytes_read) noexcept { return commit_read_impl(nbytes_read, true); }
+
     size_t current_block_left() const noexcept; 
     size_t current_block_capacity() const noexcept;
     size_t new_block_capacity() const noexcept { return m_newblock_capa; }
@@ -110,6 +115,7 @@ public:
 private:
     void reset() noexcept;
     bool append_bytes(::std::span<const ::std::byte> bytes);
+    bool commit_read_impl(size_t nbytes_read, bool remove_after_read = false) noexcept;
 
 private:
     ::std::pmr::memory_resource* m_pmr{};
@@ -117,6 +123,9 @@ private:
 
     size_t m_newblock_capa{};
     buffer_block* m_current_block{};
+
+    size_t m_current_reading_block_idx{};
+    size_t m_current_block_readed_nbytes{};
 };
 
 /**
