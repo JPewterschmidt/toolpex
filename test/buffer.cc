@@ -86,8 +86,8 @@ TEST_F(buffer_suite, dup)
     
     buffer c = b.dup();
     ASSERT_TRUE(::std::ranges::equal(c.flattened_view(), b.flattened_view()));
-    ASSERT_LE(c.total_bytes_allocated(), b.total_bytes_allocated())
-        << "new total bytes allocated = " << c.total_bytes_allocated()
-        << ", old :" << b.total_bytes_allocated()
+    ASSERT_LE(c.total_nbytes_allocated(), b.total_nbytes_allocated())
+        << "new total bytes allocated = " << c.total_nbytes_allocated()
+        << ", old :" << b.total_nbytes_allocated()
         ;
 }

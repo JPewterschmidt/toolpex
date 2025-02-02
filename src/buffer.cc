@@ -187,7 +187,7 @@ bool buffer::commit_read_impl(size_t nbytes, bool remove_after_read) noexcept
     {
         if (remove_after_read)
         {
-            m_blocks[m_current_reading_block_idx] = {};
+            m_blocks[m_current_reading_block_idx].release();
         }
 
         ++m_current_reading_block_idx;
@@ -257,10 +257,19 @@ buffer buffer::dup(::std::pmr::memory_resource* pmr) const
     return result;
 }
 
-size_t buffer::total_bytes_allocated() const noexcept
+size_t buffer::total_nbytes_allocated() const noexcept
 {
     return r::fold_left(
         blocks() | rv::transform([](auto&& item) { return item.capacity(); }),
+        0, 
+        ::std::plus{}
+    );
+}
+
+size_t buffer::total_nbytes_valid() const noexcept
+{
+    return r::fold_left(
+        blocks_valid_span() | rv::transform([](auto&& item) { return item.size(); }),
         0, 
         ::std::plus{}
     );

@@ -18,7 +18,6 @@ public:
     constexpr static size_t alignment = alignof(::std::max_align_t);
 
 public:
-    constexpr buffer_block() noexcept = default;
     buffer_block(size_t block_capa = 4096, 
                  ::std::pmr::memory_resource* pmr = nullptr);
 
@@ -30,6 +29,8 @@ public:
     size_t capacity() const noexcept { return m_block_capacity; }
     size_t size() const noexcept { return m_size; }
     size_t left() const noexcept { return capacity() - size(); }
+
+    void release() noexcept;
 
     operator ::std::span<::std::byte> () noexcept;
     operator ::std::span<const ::std::byte> () const noexcept;
@@ -44,7 +45,6 @@ public:
 private:
     ::std::byte* cursor() noexcept;
     bool fit(size_t nbytes_wanna_write) const noexcept;
-    void release() noexcept;
 
 private:
     ::std::pmr::memory_resource* m_pmr{};
@@ -89,7 +89,8 @@ public:
     size_t current_block_left() const noexcept; 
     size_t current_block_capacity() const noexcept;
     size_t new_block_capacity() const noexcept { return m_newblock_capa; }
-    size_t total_bytes_allocated() const noexcept;
+    size_t total_nbytes_allocated() const noexcept;
+    size_t total_nbytes_valid() const noexcept;
 
     const auto& blocks() const noexcept { return m_blocks; }
     const auto& last_block() const noexcept
