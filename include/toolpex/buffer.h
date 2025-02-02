@@ -30,6 +30,8 @@ public:
     size_t size() const noexcept { return m_size; }
     size_t left() const noexcept { return capacity() - size(); }
 
+    void release() noexcept;
+
     operator ::std::span<::std::byte> () noexcept;
     operator ::std::span<const ::std::byte> () const noexcept;
 
@@ -43,7 +45,6 @@ public:
 private:
     ::std::byte* cursor() noexcept;
     bool fit(size_t nbytes_wanna_write) const noexcept;
-    void release() noexcept;
 
 private:
     ::std::pmr::memory_resource* m_pmr{};
@@ -81,10 +82,15 @@ public:
     ::std::span<::std::byte> writable_span(size_t at_least = 0);
     bool commit_write(size_t nbytes_wrote) noexcept;
 
+    ::std::span<const ::std::byte> next_readable_span() const noexcept;
+    bool commit_read(size_t nbytes_read) noexcept { return commit_read_impl(nbytes_read, false); }
+    bool commit_remove_after_read(size_t nbytes_read) noexcept { return commit_read_impl(nbytes_read, true); }
+
     size_t current_block_left() const noexcept; 
     size_t current_block_capacity() const noexcept;
     size_t new_block_capacity() const noexcept { return m_newblock_capa; }
-    size_t total_bytes_allocated() const noexcept;
+    size_t total_nbytes_allocated() const noexcept;
+    size_t total_nbytes_valid() const noexcept;
 
     const auto& blocks() const noexcept { return m_blocks; }
     const auto& last_block() const noexcept
@@ -110,6 +116,7 @@ public:
 private:
     void reset() noexcept;
     bool append_bytes(::std::span<const ::std::byte> bytes);
+    bool commit_read_impl(size_t nbytes_read, bool remove_after_read = false) noexcept;
 
 private:
     ::std::pmr::memory_resource* m_pmr{};
@@ -117,6 +124,9 @@ private:
 
     size_t m_newblock_capa{};
     buffer_block* m_current_block{};
+
+    size_t m_current_reading_block_idx{};
+    size_t m_current_block_readed_nbytes{};
 };
 
 /**
