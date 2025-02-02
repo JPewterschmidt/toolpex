@@ -91,3 +91,46 @@ TEST_F(buffer_suite, dup)
         << ", old :" << b.total_nbytes_allocated()
         ;
 }
+
+TEST_F(buffer_suite, simple_read)
+{
+    b = { 16 };
+    feed_one();
+    feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
+    
+    const size_t sz = b.total_nbytes_valid(), oldasz = b.total_nbytes_allocated();
+    size_t readable_sp_sz{};
+    ::std::span<const ::std::byte> sp;
+    do
+    {
+        sp = b.next_readable_span();
+        readable_sp_sz += sp.size();
+        if (sp.size()) b.commit_read(sp.size());
+    }
+    while (sp.size() != 0);
+    ASSERT_EQ(sz, readable_sp_sz);
+    ASSERT_EQ(oldasz, b.total_nbytes_allocated());
+}
+
+TEST_F(buffer_suite, complex_read)
+{
+    b = { 16 };
+    feed_one();
+    feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
+    
+    auto sp1 = b.next_readable_span();
+    auto sp2 = b.next_readable_span();
+    ASSERT_EQ(sp1.data(), sp2.data());
+    ASSERT_EQ(sp1.size(), sp2.size());
+
+    b.commit_read(sp2.size());
+    ASSERT_NE(sp1.data(), b.next_readable_span().data());
+}
