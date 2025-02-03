@@ -92,6 +92,7 @@ public:
     size_t new_block_capacity() const noexcept { return m_newblock_capa; }
     size_t total_nbytes_allocated() const noexcept;
     size_t total_nbytes_valid() const noexcept;
+    bool empty() const noexcept;
 
     const auto& blocks() const noexcept { return m_blocks; }
     const auto& last_block() const noexcept
