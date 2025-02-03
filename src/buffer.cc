@@ -294,4 +294,9 @@ size_t buffer::total_nbytes_valid() const noexcept
     );
 }
 
+bool buffer::empty() const noexcept
+{
+    return m_blocks.empty();
+}
+
 } // namespace toolpex
