@@ -185,6 +185,7 @@ void buffer::reset_reading_info() noexcept
 
 bool buffer::commit_read_impl(size_t nbytes, bool remove_after_read) noexcept
 {
+    if (nbytes == 0) return true;
     if (m_blocks.empty()) [[unlikely]] return false;
     
     const auto& blk = m_blocks[m_current_reading_block_idx];
