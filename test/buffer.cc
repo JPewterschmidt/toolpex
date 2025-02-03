@@ -134,3 +134,21 @@ TEST_F(buffer_suite, complex_read)
     b.commit_read(sp2.size());
     ASSERT_NE(sp1.data(), b.next_readable_span().data());
 }
+
+TEST_F(buffer_suite, reset_reading_info)
+{
+    b = { 16 };
+    feed_one();
+    feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
+    feed_one();
+    feed_large_chunk();
+
+    auto sp1 = b.next_readable_span();
+    b.commit_read(1);
+
+    b.reset_reading_info();
+    auto sp2 = b.next_readable_span();
+    ASSERT_EQ(sp1.data(), sp2.data());
+}
