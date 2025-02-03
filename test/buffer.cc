@@ -35,6 +35,17 @@ public:
         ws[0] = isingle[0];
         return b.commit_write(1);
     }
+
+    void reset()
+    {
+        b = { 16 };
+        feed_one();
+        feed_large_chunk();
+        feed_one();
+        feed_large_chunk();
+        feed_one();
+        feed_large_chunk();
+    }
 };
 
 TEST_F(buffer_suite, big_block)
@@ -76,14 +87,8 @@ TEST_F(buffer_suite, joint)
 
 TEST_F(buffer_suite, dup)
 {
-    b = { 16 };
-    feed_one();
-    feed_large_chunk();
-    feed_one();
-    feed_large_chunk();
-    feed_one();
-    feed_large_chunk();
-    
+    reset();
+
     buffer c = b.dup();
     ASSERT_TRUE(::std::ranges::equal(c.flattened_view(), b.flattened_view()));
     ASSERT_LE(c.total_nbytes_allocated(), b.total_nbytes_allocated())
@@ -94,14 +99,8 @@ TEST_F(buffer_suite, dup)
 
 TEST_F(buffer_suite, simple_read)
 {
-    b = { 16 };
-    feed_one();
-    feed_large_chunk();
-    feed_one();
-    feed_large_chunk();
-    feed_one();
-    feed_large_chunk();
-    
+    reset();
+
     const size_t sz = b.total_nbytes_valid(), oldasz = b.total_nbytes_allocated();
     size_t readable_sp_sz{};
     ::std::span<const ::std::byte> sp;
@@ -118,14 +117,8 @@ TEST_F(buffer_suite, simple_read)
 
 TEST_F(buffer_suite, complex_read)
 {
-    b = { 16 };
-    feed_one();
-    feed_large_chunk();
-    feed_one();
-    feed_large_chunk();
-    feed_one();
-    feed_large_chunk();
-    
+    reset();
+
     auto sp1 = b.next_readable_span();
     auto sp2 = b.next_readable_span();
     ASSERT_EQ(sp1.data(), sp2.data());
@@ -133,4 +126,25 @@ TEST_F(buffer_suite, complex_read)
 
     b.commit_read(sp2.size());
     ASSERT_NE(sp1.data(), b.next_readable_span().data());
+}
+
+TEST_F(buffer_suite, reset_reading_info)
+{
+    reset();
+
+    auto sp1 = b.next_readable_span();
+    b.commit_read(1);
+
+    b.reset_reading_info();
+    auto sp2 = b.next_readable_span();
+    ASSERT_EQ(sp1.data(), sp2.data());
+}
+
+TEST_F(buffer_suite, commit_0_read)
+{
+    reset();
+
+    auto sp1 = b.next_readable_span();
+    b.commit_read(0);
+    ASSERT_EQ(sp1.data(), b.next_readable_span().data());
 }

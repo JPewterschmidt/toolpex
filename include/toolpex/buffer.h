@@ -85,6 +85,7 @@ public:
     ::std::span<const ::std::byte> next_readable_span() const noexcept;
     bool commit_read(size_t nbytes_read) noexcept { return commit_read_impl(nbytes_read, false); }
     bool commit_remove_after_read(size_t nbytes_read) noexcept { return commit_read_impl(nbytes_read, true); }
+    void reset_reading_info() noexcept;
 
     size_t current_block_left() const noexcept; 
     size_t current_block_capacity() const noexcept;
@@ -117,6 +118,7 @@ private:
     void reset() noexcept;
     bool append_bytes(::std::span<const ::std::byte> bytes);
     bool commit_read_impl(size_t nbytes_read, bool remove_after_read = false) noexcept;
+    bool has_no_remove_after_read() const noexcept;
 
 private:
     ::std::pmr::memory_resource* m_pmr{};
@@ -150,7 +152,7 @@ public:
      * @brief Constructs a `buffer_lens` by refer a buffer.
      * @param buf An lvalue reference to the buffer to be wrapped.
      */
-    buffer_lens(const buffer& buf) noexcept
+    buffer_lens(buffer& buf) noexcept
         : m_buffer{ &buf }
     {
         toolpex_assert(alignment_check());
@@ -209,6 +211,55 @@ public:
         return blocks_valid_span() | rv::join;
     }
 
+    /**
+     * @brief Retrieves the next readable span of data.
+     *
+     * This function returns a span representing the next available readable
+     * portion of the buffer. The data is cast to `const char*` to ensure
+     * correct interpretation.
+     *
+     * @tparam EleT The element type of the buffer.
+     * @return ::std::span<const EleT> The span of readable data.
+     * @note This function does not modify the buffer.
+     * @warning Ensure the buffer remains valid while using the returned span.
+     */
+    ::std::span<const EleT> next_readable_span() const noexcept
+    {
+        auto sp = buffer_ptr()->next_readable_span();
+        return { reinterpret_cast<const EleT*>(sp.data()), sp.size_bytes() / sizeof(EleT) };
+    }
+
+    /**
+     * @brief Marks a certain number of elements as read in the buffer.
+     *
+     * This function commits `nele_read` elements as read, advancing the read pointer.
+     * The number of bytes marked as read is computed as `nele_read * sizeof(EleT)`.
+     *
+     * @param nele_read The number of elements to mark as read.
+     * @return `true` if the operation was successful, `false` otherwise.
+     * @note This function does not remove data from the buffer, only marks it as read.
+     */
+    bool commit_read(size_t nele_read) noexcept
+    {
+        return buffer_ptr()->commit_read(nele_read * sizeof(EleT));
+    }
+
+    /**
+     * @brief Commits and removes data after reading.
+     *
+     * This function commits `nele_read` elements as read and removes them
+     * from the buffer, freeing up space for future writes. The number of bytes
+     * removed is calculated as `nele_read * sizeof(EleT)`.
+     *
+     * @param nele_read The number of elements to commit and remove.
+     * @return `true` if the operation was successful, `false` otherwise.
+     * @note This function modifies the buffer by removing data.
+     */
+    bool commit_remove_after_read(size_t nele_read) noexcept
+    {
+        return buffer_ptr()->commit_remove_after_read(nele_read * sizeof(EleT));
+    }
+
 private:
     // Check if the data aligned to specific type.
     bool alignment_check()
@@ -223,9 +274,21 @@ private:
 
     const buffer* buffer_ptr() const noexcept
     {
-        if (::std::holds_alternative<const buffer*>(m_buffer))
+        if (::std::holds_alternative<buffer*>(m_buffer))
         {
-            return ::std::get<const buffer*>(m_buffer);
+            return ::std::get<buffer*>(m_buffer);
+        }
+        else
+        {
+            return ::std::get<::std::unique_ptr<buffer>>(m_buffer).get();
+        }
+    }
+
+    buffer* buffer_ptr() noexcept
+    {
+        if (::std::holds_alternative<buffer*>(m_buffer))
+        {
+            return ::std::get<buffer*>(m_buffer);
         }
         else
         {
@@ -234,7 +297,7 @@ private:
     }
 
 private:
-    ::std::variant<::std::unique_ptr<buffer>, const buffer*> m_buffer;
+    ::std::variant<::std::unique_ptr<buffer>, buffer*> m_buffer;
 };
 
 } // namespace toolpex
