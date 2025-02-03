@@ -89,11 +89,13 @@ bool buffer_block::commit_write(size_t bytes) noexcept
 
 ::std::span<::std::byte> buffer_block::valid_span() noexcept
 {
+    if (capacity() == 0) return {};
     return { m_storage, size() };
 }
 
 ::std::span<const ::std::byte> buffer_block::valid_span() const noexcept
 {
+    if (capacity() == 0) return {};
     return { m_storage, size() };
 }
 
@@ -172,6 +174,7 @@ bool buffer::commit_write(size_t nbytes_wrote) noexcept
 ::std::span<const ::std::byte> buffer::next_readable_span() const noexcept
 {
     if (m_blocks.empty()) [[unlikely]] return {};
+    if (m_current_reading_block_idx >= m_blocks.size()) return {};
     const auto& blk = m_blocks[m_current_reading_block_idx];
     return blk.valid_span().subspan(m_current_block_readed_nbytes);
 }
