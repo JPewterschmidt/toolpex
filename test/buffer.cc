@@ -46,7 +46,18 @@ public:
         feed_one();
         feed_large_chunk();
     }
+
+    void reset_without_fill()
+    {
+        b = { 16 };
+    }
 };
+
+TEST_F(buffer_suite, empty)
+{
+    reset_without_fill();
+    ASSERT_TRUE(b.empty());
+}
 
 TEST_F(buffer_suite, big_block)
 {
