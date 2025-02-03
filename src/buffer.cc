@@ -176,8 +176,16 @@ bool buffer::commit_write(size_t nbytes_wrote) noexcept
     return blk.valid_span().subspan(m_current_block_readed_nbytes);
 }
 
+void buffer::reset_reading_info() noexcept
+{
+    toolpex_assert(has_no_remove_after_read());
+    m_current_reading_block_idx = 0;
+    m_current_block_readed_nbytes = 0;
+}
+
 bool buffer::commit_read_impl(size_t nbytes, bool remove_after_read) noexcept
 {
+    if (nbytes == 0) return true;
     if (m_blocks.empty()) [[unlikely]] return false;
     
     const auto& blk = m_blocks[m_current_reading_block_idx];
@@ -194,6 +202,17 @@ bool buffer::commit_read_impl(size_t nbytes, bool remove_after_read) noexcept
         m_current_block_readed_nbytes = 0;
     }
     
+    return true;
+}
+
+bool buffer::has_no_remove_after_read() const noexcept
+{
+    for (const auto& block : m_blocks)
+    {
+        if (block.capacity() == 0) 
+            return false;
+    }
+
     return true;
 }
 
