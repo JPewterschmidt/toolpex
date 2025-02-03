@@ -32,6 +32,8 @@ namespace
     double dummy8() { return 1.0; }
     double dummy9() noexcept { return 1.0; }
     double dummy10(const int&) noexcept { return 1.0; }
+    
+    auto dummy11 = [] (int) -> double { return {}; };
 }
 
 TEST(concepts, number_of_parameters)
@@ -51,8 +53,10 @@ TEST(concepts, get_return_type)
     //::std::string name1 = typeid(get_return_type_t<decltype(dummy7)>).name();
     ::std::string name2 = typeid(get_return_type_t<decltype(dummy8)>).name();
     ::std::string name3 = typeid(get_return_type_t<decltype(dummy9)>).name();
+    ::std::string name4 = typeid(get_return_type_t<decltype(dummy11)>).name();
     //ASSERT_EQ(name1, name2);
     ASSERT_EQ(name2, name3);
+    ASSERT_EQ(name2, name4);
 }
 
 TEST(concepts, timespec_like)
