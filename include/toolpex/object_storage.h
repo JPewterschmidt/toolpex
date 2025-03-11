@@ -19,17 +19,25 @@ public:
     object_storage() = default;
 
     object_storage(object_storage&& other) noexcept
-        : m_storage{ ::std::move(other.m_storage) }, 
-          m_has_value{ ::std::exchange(other.m_has_value, false) }
     {
+        if (other.has_value())
+        {
+            set_value(other.get_value());
+        }
     }
 
     object_storage& operator=(object_storage&& other) noexcept
     {
-        m_storage = ::std::move(other.m_storage);
-        m_has_value = ::std::exchange(other.m_has_value, false);
+        clear();
+
+        if (other.has_value())
+        {
+            set_value(other.get_value());
+        }
         return *this;
     }
+
+    ~object_storage() noexcept { clear(); }
 
     template<typename... Args>
     void set_value(Args&&... args)
@@ -61,6 +69,9 @@ public:
 
     void clear() noexcept 
     {
+        if (!has_value())
+            return;
+
         storage()->~T();
         m_has_value = false;
     }
@@ -80,16 +91,16 @@ public:
 private:
     T* storage() noexcept
     {
-        return reinterpret_cast<T*>(m_storage.get());
+        return reinterpret_cast<T*>(m_storage.data());
     }
 
     const T* storage() const noexcept
     {
-        return reinterpret_cast<const T*>(m_storage.get());
+        return reinterpret_cast<const T*>(m_storage.data());
     }
 
 private:
-    ::std::unique_ptr<::std::byte[]> m_storage{ new ::std::byte[sizeof(T)] };
+    ::std::array<::std::byte, sizeof(T)> m_storage;
     bool m_has_value{};
 }; 
 
